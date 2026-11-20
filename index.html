@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>메인트윗 틀 메이커</title>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Gowun+Batang&family=Noto+Sans+KR&family=Noto+Serif+KR&family=Nanum+Gothic&family=Nanum+Myeongjo&family=Nanum+Pen+Script&family=Gaegu&family=Gamja+Flower&family=Poor+Story&family=Hi+Melody&family=Single+Day&family=Jua&family=Do+Hyeon&family=Yeon+Sung&family=Dongle&family=Cute+Font&display=swap" rel="stylesheet">
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.min.css">
+<style>
+:root{--p:#d4d4d4;--pd:#4a4a4a;--ink:#2a2a2a;--bg:#f4f4f4;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Gowun Dodum",sans-serif;background:var(--bg);color:var(--ink)}
+#app{display:flex;gap:20px;padding:20px;max-width:1240px;margin:auto;align-items:flex-start}
+main{flex:1 1 560px;position:sticky;top:20px;min-width:0;max-height:calc(100vh - 40px);overflow:auto}
+canvas{width:100%;height:auto;display:block;border-radius:14px;box-shadow:0 2px 18px #00000022;touch-action:pan-y;background:#fff}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+aside{flex:0 0 400px;display:flex;flex-direction:column;gap:10px}
+details{background:var(--card);border:1.5px solid var(--p);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-size:17px}
+details>div{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+input[type=text],textarea,select{width:100%;font:inherit;font-size:14px;padding:7px 9px;border:1.2px solid var(--p);border-radius:8px;background:#fff;color:var(--ink)}
+textarea{min-height:60px;resize:vertical}
+input[type=range]{width:100%;accent-color:var(--pd)}
+label{font-size:13px;display:block}
+button,label.btn{font:inherit;font-size:14px;padding:7px 13px;border-radius:999px;border:1.5px solid var(--pd);background:#fff;color:var(--pd);cursor:pointer;display:inline-block}
+button:hover,label.btn:hover{background:var(--p);color:#fff}
+button.main{background:var(--pd);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,.th:focus-visible{outline:2px solid var(--pd);outline-offset:2px}
+input[type=file]{display:none}
+.row{display:flex;gap:6px;align-items:center}
+.row>*{flex:1}.row>button{flex:0 0 auto;padding:5px 10px}
+.colors{display:flex;flex-wrap:wrap;gap:12px}
+.colors label{display:flex;flex-direction:column;gap:3px;align-items:flex-start}
+input[type=color]{width:56px;height:30px;border:1.2px solid var(--p);border-radius:6px;padding:2px;background:#fff}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px}
+.th{position:relative;width:64px;height:64px;border-radius:8px;border:1.5px solid var(--p);overflow:hidden;cursor:pointer;background:#fff}
+.th.on{border-color:var(--pd);box-shadow:0 0 0 2px var(--pd)}
+.th img{width:100%;height:100%;object-fit:contain}
+.th button{position:absolute;top:1px;right:1px;padding:0 6px;font-size:12px;border-radius:6px}
+small{color:#9a8083;line-height:1.5}
+@media(max-width:900px){#app{flex-direction:column}main{position:static;width:100%;max-height:none}aside{flex:1 1 auto;width:100%}}
+</style>
+</head>
+<body>
+<div id="app">
+<main>
+ <canvas id="cv" width="900" height="750" aria-label="메인트윗 미리보기"></canvas>
+ <div class="bar">
+  <button id="play">⏸ 멈춤</button>
+    <button id="png">전체 PNG</button>
+  <button id="gif">전체 저장</button>
+  <select id="fmt" style="width:auto" aria-label="저장 형식"><option value="gif" selected>형식: GIF</option><option value="mp4">형식: MP4 영상</option></select>
+  <select id="gz" style="width:auto" aria-label="GIF 크기"><option value="600">GIF 가로 600px</option><option value="900" selected>GIF 가로 900px</option><option value="1200">GIF 가로 1200px</option><option value="1800">GIF 가로 1800px (최고화질)</option></select>
+  <select id="fps" style="width:auto" aria-label="움직임 부드럽기"><option value="30">30fps 영상 추천</option><option value="20" selected>20fps 부드럽게</option><option value="12">12fps 보통</option><option value="8">8fps 가볍게</option></select>
+  <select id="dth" style="width:auto" aria-label="디더링"><option value="fs" selected>디더링: 촘촘하게</option><option value="bayer">디더링: 격자</option><option value="none">디더링 없음</option></select>
+  <select id="rep" style="width:auto;display:none" aria-label="MP4 반복 횟수"><option value="1">MP4 반복 1회</option><option value="3">3회 반복</option><option value="5">5회 반복</option><option value="10">10회 반복</option></select>
+  <label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="fit" checked>15MB 이하로 자동 맞춤</label>
+  <span id="st" role="status"></span>
+ </div>
+ <small>스티커·사진은 캔버스에서 드래그할 수 있어요. 사진 위에서 마우스 휠을 굴리면 확대/축소돼요.</small>
+</main>
+<aside>
+<details open><summary>기본 정보</summary><div>
+ <label>글꼴 <select data-k="font" id="i-font"></select></label>
+ <div><label class="btn">내 글꼴 파일 추가 (ttf · otf · woff)<input type="file" accept=".ttf,.otf,.woff,.woff2" id="ff"></label></div>
+ <input type="text" data-k="nick" id="i-nick" placeholder="닉네임" aria-label="닉네임">
+ <textarea data-k="desc" id="i-desc" placeholder="계정 설명" aria-label="계정 설명"></textarea>
+ <div class="colors">
+  <label>헤더색<input type="color" data-k="accent" id="i-accent"></label>
+  <label>칸 색<input type="color" data-k="panel" id="i-panel"></label>
+  <label>버튼 색<input type="color" data-k="pill" id="i-pill"></label>
+  <label>배경색<input type="color" data-k="bg" id="i-bg"></label>
+  <label>글자색<input type="color" data-k="ink" id="i-ink"></label>
+ </div>
+ <div class="thumbs" id="presets" aria-label="색 프리셋"></div>
+ <label>칸 모서리 둥글기 <input type="range" data-k="round" min="0" max="50" id="i-round"></label>
+ <label>출처 · 커미션 표기 (하단 오른쪽 칸)<textarea data-k="credit" id="i-credit" style="min-height:48px" placeholder="예: 커미션 @아이디&#10;그림 출처 @아이디"></textarea></label>
+</div></details>
+<details><summary>헤더 · 인장</summary><div>
+ <div class="row"><label class="btn">헤더 이미지<input type="file" accept="image/*" data-file="header"></label><button data-clr="header">지우기</button></div>
+ <small>헤더는 아래로 갈수록 배경색으로 흐려져요. GIF도 올릴 수 있어요. 캔버스에서 헤더를 드래그하면 위치가, 마우스 휠로 확대·축소가 돼요.</small>
+ <div id="hdctl" style="display:flex;flex-direction:column;gap:8px"></div>
+ <div class="row"><label class="btn">인장 이미지<input type="file" accept="image/*" data-file="emblem"></label><button data-clr="emblem">지우기</button></div>
+ <label>인장 크기 <input type="range" data-k="emSize" min="50" max="120" id="i-em"></label>
+</div></details>
+<details><summary>탭 버튼</summary><div id="tabs"></div><div><button data-add="tabs">+ 버튼 추가</button></div></details>
+<details open><summary>왼쪽 칸 (ABOUT · NG · 기타)</summary><div>
+ <label>글자 크기 <input type="range" data-k="tsize" min="11" max="30" id="i-ts"></label>
+ <label>왼쪽 · 오른쪽 칸 너비 비율 <input type="range" data-k="colRatio" min="30" max="70" id="i-cr"></label>
+ <div id="boxes" style="display:flex;flex-direction:column;gap:10px"></div>
+ <div><button data-add="boxes">+ 칸 추가</button></div>
+ <small>「반칸」을 켠 칸이 위아래로 연달아 있으면 두 칸이 나란히 놓여요. 글이 길어지면 칸이 아래로 늘어나요.</small>
+</div></details>
+<details open><summary>페어 사진</summary><div>
+ <div><label class="btn">사진 추가 (여러 장)<input type="file" accept="image/*" multiple data-file="photos"></label></div>
+ <div class="thumbs" id="photos"></div>
+ <div id="phctl"></div>
+</div></details>
+<details open><summary>PNG 스티커</summary><div>
+ <div><label class="btn">PNG 추가 (여러 장)<input type="file" accept="image/png,image/webp,image/gif" multiple data-file="stk"></label></div>
+ <div class="thumbs" id="stks"></div>
+ <div id="stctl"></div>
+</div></details>
+<details open><summary>하단 바 (Main tweet · 흐르는 글자 · 출처)</summary><div>
+ <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-k="foot" id="i-foot"> 하단 바 표시</label>
+ <input type="text" data-k="fl" id="i-fl" placeholder="왼쪽 버튼 글씨 (기본: Main tweet)" aria-label="왼쪽 버튼 글씨">
+ <input type="text" data-k="mq" id="i-mq" placeholder="흐르는 글자 (오른쪽에서 왼쪽으로 계속 반복)" aria-label="흐르는 글자">
+ <label>흐르는 속도 <input type="range" data-k="mqv" min="20" max="200" id="i-mqv"></label>
+ <small>오른쪽 작은 칸에는 「기본 정보」의 「출처 · 커미션 표기」가 들어가요. 내용이 길어지면 칸이 늘어나요. 비워두면 그 칸은 사라져요.</small>
+</div></details>
+<details><summary>저장 · 불러오기</summary><div>
+ <small>JSON으로 저장해서 깃허브에 <b>project.json</b> 이름으로 올리면, 페이지를 열 때 자동으로 불러와요. 이 브라우저에서는 작업 내용이 자동 저장됩니다.</small>
+ <div class="row"><button id="sv">JSON 저장</button><label class="btn" style="text-align:center">JSON 불러오기<input type="file" accept=".json" id="ld"></label></div>
+ <div class="row"><button id="pj">project.json 불러오기</button><button id="rs">처음으로</button></div>
+</div></details>
+</aside>
+</div>
+<script>
+let F='"Gowun Dodum",sans-serif';
+const $=s=>document.querySelector(s),W=900,cv=$('#cv'),cx=cv.getContext('2d');
+const M=40,G=20,GI=12,PX=M,PADX=20,PADY=18;
+const DEF=()=>({nick:'닉네임',desc:'계정 설명',accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626',emSize:90,credit:'© ',foot:true,fl:'Main tweet',mq:'자유롭게 문구를 적어주세요',mqv:60,font:'Gowun Dodum',tsize:17,round:28,colRatio:50,boxes:[{t:'ABOUT',b:'자유롭게 소개를 적어주세요.\n줄바꿈도 그대로 보여요.',half:false,h:170,wt:50},{t:'NG',b:'주의사항',half:true,h:120,wt:50},{t:'기타등등',b:'링크, 메모 등',half:true,h:120,wt:50}],header:null,hd:{z:1,ox:0,oy:0},emblem:null,tabs:['계정','특징','...'],photos:[],stk:[]});
+function mig(o){const n=Object.assign(DEF(),o);if(o.secs){n.text=o.secs.map(s=>[s.t,s.b].filter(Boolean).join('\n')).join('\n\n');delete n.secs}if(n.text!==undefined){if(!o.boxes)n.boxes=[{t:'',b:n.text,half:false,h:0,wt:50}];delete n.text}
+ n.boxes=n.boxes.map(b=>Object.assign({t:'',b:'',half:false,h:0,wt:50},b));
+ n.photos=n.photos.map(p=>typeof p=='string'?{src:p,z:1,ox:0,oy:0,h:240,cap:''}:p);n.hd=Object.assign({z:1,ox:0,oy:0},o.hd||{});if(!n.credit)n.credit='© ';return n}
+const FONTS=[['Gowun Dodum','고운돋움'],['Pretendard','프리텐다드'],['Gowun Batang','고운바탕'],['Noto Sans KR','노토 산스'],['Noto Serif KR','노토 세리프'],['Nanum Gothic','나눔고딕'],['Nanum Myeongjo','나눔명조'],['Nanum Pen Script','나눔손글씨 펜'],['Gaegu','개구'],['Gamja Flower','감자꽃'],['Poor Story','푸어스토리'],['Hi Melody','하이멜로디'],['Single Day','싱글데이'],['Jua','주아'],['Do Hyeon','도현'],['Yeon Sung','연성'],['Dongle','동글'],['Cute Font','귀여운 폰트']];
+$('#i-font').innerHTML=FONTS.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');
+const PRESETS=[['화이트 그레이',{accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626'}],['웜 그레이',{accent:'#d9d4cc',panel:'#f1eeea',pill:'#3b3733',bg:'#fbfaf8',ink:'#2d2a27'}],['차콜',{accent:'#4a4a4a',panel:'#242424',pill:'#6a6a6a',bg:'#161616',ink:'#ececec'}],['소프트 핑크',{accent:'#e4aeae',panel:'#f4e1e0',pill:'#e4aeae',bg:'#ffffff',ink:'#5a4548'}]];
+$('#presets').innerHTML=PRESETS.map((p,i)=>`<button data-preset=${i}>${p[0]}</button>`).join('');
+let S=DEF(),sel=-1,selP=-1,playing=true,drag=null,busy=false;
+const cache={};
+// ---------- GIF 디코더 (사진·헤더·스티커에 올린 GIF를 움직이게 하기 위해)
+const gifs={},gp={};let STP=2,MQ=null;
+const isGif=s=>typeof s=='string'&&s.startsWith('data:image/gif');
+function lzwDec(mcs,data,n){const out=new Uint8Array(n),clear=1<<mcs,eoi=clear+1,pre=new Uint16Array(4096),suf=new Uint8Array(4096),stack=new Uint8Array(4097);
+ let cs=mcs+1,next=eoi+1,mask=(1<<cs)-1,bits=0,nb=0,pos=0,op=0,old=-1,first=0;for(let i=0;i<clear;i++)suf[i]=i;
+ while(op<n){while(nb<cs&&pos<data.length){bits|=data[pos++]<<nb;nb+=8}if(nb<cs)break;
+  let code=bits&mask;bits>>=cs;nb-=cs;
+  if(code==clear){cs=mcs+1;next=eoi+1;mask=(1<<cs)-1;old=-1;continue}
+  if(code==eoi)break;
+  if(old==-1){out[op++]=suf[code];old=code;first=code;continue}
+  const inc=code;let sp=0;
+  if(code>=next){stack[sp++]=first;code=old}
+  while(code>=clear){stack[sp++]=suf[code];code=pre[code]}
+  first=suf[code];stack[sp++]=first;
+  if(next<4096){pre[next]=old;suf[next]=first;next++;if((next&mask)==0&&next<4096){cs++;mask=(1<<cs)-1}}
+  old=inc;while(sp>0&&op<n)out[op++]=stack[--sp]}
+ return out}
+function parseGif(u){let p=6;const w=u[p]|u[p+1]<<8,h=u[p+2]|u[p+3]<<8,f0=u[p+4];p+=7;
+ let gct=null;if(f0&128){const n=3*(2<<(f0&7));gct=u.subarray(p,p+n);p+=n}
+ const wk=document.createElement('canvas');wk.width=w;wk.height=h;const wc=wk.getContext('2d',{willReadFrequently:true});
+ const sc=Math.min(1,800/Math.max(w,h)),fw=Math.max(1,Math.round(w*sc)),fh=Math.max(1,Math.round(h*sc));
+ const frames=[];let gce={d:100,dis:0,tr:-1},pd=0,pr=null,snap=null;
+ while(p<u.length){const b=u[p++];if(b==0x3B)break;
+  if(b==0x21){const lab=u[p++];if(lab==0xF9){const f=u[p+1];gce={d:((u[p+2]|u[p+3]<<8)*10)||100,dis:(f>>2)&7,tr:f&1?u[p+4]:-1}}while(u[p])p+=u[p]+1;p++}
+  else if(b==0x2C){const x=u[p]|u[p+1]<<8,y=u[p+2]|u[p+3]<<8,iw=u[p+4]|u[p+5]<<8,ih=u[p+6]|u[p+7]<<8,f=u[p+8];p+=9;
+   let ct=gct;if(f&128){const n=3*(2<<(f&7));ct=u.subarray(p,p+n);p+=n}
+   const mcs=u[p++];let len=0,q=p;while(u[q]){len+=u[q];q+=u[q]+1}const dat=new Uint8Array(len);let o=0;while(u[p]){dat.set(u.subarray(p+1,p+1+u[p]),o);o+=u[p];p+=u[p]+1}p++;
+   let px=lzwDec(mcs,dat,iw*ih);
+   if(f&64){const out=new Uint8Array(iw*ih);let r=0;for(const[st,sp]of[[0,8],[4,8],[2,4],[1,2]])for(let yy=st;yy<ih;yy+=sp){out.set(px.subarray(r*iw,r*iw+iw),yy*iw);r++}px=out}
+   if(pd==2&&pr)wc.clearRect(pr[0],pr[1],pr[2],pr[3]);else if(pd==3&&snap)wc.putImageData(snap,0,0);
+   snap=gce.dis==3?wc.getImageData(0,0,w,h):null;
+   const id=wc.createImageData(iw,ih),dd=id.data;
+   for(let i=0;i<px.length;i++){const c=px[i];if(c===gce.tr)continue;dd[i*4]=ct[c*3];dd[i*4+1]=ct[c*3+1];dd[i*4+2]=ct[c*3+2];dd[i*4+3]=255}
+   const tc=document.createElement('canvas');tc.width=iw;tc.height=ih;tc.getContext('2d').putImageData(id,0,0);wc.drawImage(tc,x,y);
+   const fc=document.createElement('canvas');fc.width=fw;fc.height=fh;fc.getContext('2d').drawImage(wk,0,0,fw,fh);fc.naturalWidth=fw;fc.naturalHeight=fh;
+   frames.push({c:fc,d:Math.max(20,gce.d)});pd=gce.dis;pr=[x,y,iw,ih];gce={d:100,dis:0,tr:-1}}
+  else break}
+ return{frames,total:frames.reduce((a,f)=>a+f.d,0)||100}}
+async function loadGif(src){try{const bin=atob(src.split(',')[1]),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);const g=parseGif(u);gifs[src]=g.frames.length?g:0}catch(e){console.error(e);gifs[src]=0}}
+function gifAt(g,t){const m=(t*1000)%g.total;let a=0;for(const f of g.frames){a+=f.d;if(m<a)return f.c}return g.frames[g.frames.length-1].c}
+function img(s,t){if(!s)return null;
+ if(isGif(s)){if(!(s in gp))gp[s]=loadGif(s);const g=gifs[s];if(g)return gifAt(g,t||0);if(g!==0)return null}
+ let i=cache[s];if(!i){i=cache[s]=new Image();i.src=s}return i.complete&&i.naturalWidth?i:null}
+const hhOf=L=>(L.tabs.length?L.tabs[0].y:236)+4;
+function capDraw(c,p,r){const all=String(p.cap||'').split('\n').map(x=>x.trim()).filter(Boolean);if(!all.length)return;
+ const rest=all.slice(1,4),f1=Math.round(clamp(r.w*.055,16,23)),f2=Math.round(f1*.72),l2=f2*1.5,pad=24,maxw=r.w-pad*2;
+ const fit=(tx)=>{let q=tx;if(c.measureText(q).width>maxw){while(q.length>1&&c.measureText(q+'…').width>maxw)q=q.slice(0,-1);q+='…'}return q};
+ c.save();rr(c,r.x,r.y,r.w,r.h,S.round);c.clip();
+ c.textAlign='left';c.shadowColor='rgba(0,0,0,.55)';c.shadowBlur=8;
+ const yb=r.y+r.h-pad+2,y0=yb-(rest.length?(rest.length-1)*l2+l2*1.1:0);
+ c.font=`bold ${f1}px ${F}`;LS(c,.2);c.fillStyle='#fff';c.fillText(fit(all[0]),r.x+pad,y0);
+ c.font=`${f2}px ${F}`;LS(c,.3);c.fillStyle='rgba(255,255,255,.84)';
+ rest.forEach((l,i)=>c.fillText(fit(l),r.x+pad,yb-(rest.length-1-i)*l2));LS(c,0);c.restore()}
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const rgba=(h,a)=>{const n=parseInt(h.slice(1),16);return`rgba(${n>>16},${n>>8&255},${n&255},${a})`};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function wrap(c,t,w){const L=[];for(const p of String(t).split('\n')){let l='';for(const wd of p.split(' ')){const T=l?l+' '+wd:wd;if(c.measureText(T).width<=w){l=T;continue}if(l)L.push(l);l='';for(const ch of wd){if(c.measureText(l+ch).width>w){L.push(l);l=ch}else l+=ch}}L.push(l)}return L}
+function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,Math.min(r,w/2,h/2))}
+function cover(c,im,x,y,w,h,r,p){p=p||{z:1,ox:0,oy:0};c.save();rr(c,x,y,w,h,r);c.clip();const k=Math.max(w/im.naturalWidth,h/im.naturalHeight)*p.z,dw=im.naturalWidth*k,dh=im.naturalHeight*k;c.drawImage(im,x+(w-dw)/2+p.ox*(dw-w)/2,y+(h-dh)/2+p.oy*(dh-h)/2,dw,dh);c.restore()}
+// ---------- layout (캔버스 높이는 내용에 따라 자동으로 늘어남)
+const NS=30,TH=34,FH=38,mc=document.createElement('canvas').getContext('2d');
+const LS=(c,v)=>{if('letterSpacing' in c)c.letterSpacing=v+'px'};
+const emb=()=>{const r=S.emSize;return{r,cx:M+r+24,cy:270-r,nx:M+24+2*r+26}};
+function measure(){F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${F}`;LS(c,.3);let x=E.nx,y=236;const tabs=[];
+ for(const t of S.tabs){const w=Math.ceil(c.measureText(t).width)+40;if(x+w>W-M&&x>E.nx){x=E.nx;y+=TH+10}tabs.push({x,y,w,t});x+=w+8}
+ LS(c,0);
+ const top=Math.max(300,y+TH+38),tw=W-2*M-G,lw=Math.round(tw*S.colRatio/100),rw=tw-lw,R=S.round,sm=10,tf=Math.max(11,Math.round(S.tsize*.78)),lh=S.tsize*1.7;
+ const rows=[];for(let i=0;i<S.boxes.length;){if(S.boxes[i].half&&S.boxes[i+1]&&S.boxes[i+1].half){rows.push([i,i+1]);i+=2}else{rows.push([i]);i++}}
+ const bx=[];let y2=top;
+ rows.forEach((row,ri)=>{const first=ri==0,last=ri==rows.length-1;let ws=[lw];
+  if(row.length==2){const wa=S.boxes[row[0]].wt||50,wb=S.boxes[row[1]].wt||50,w1=Math.round((lw-GI)*wa/(wa+wb));ws=[w1,lw-GI-w1]}
+  let h=0;const its=row.map((i,k)=>{const b=S.boxes[i];c.font=`${S.tsize}px ${F}`;LS(c,.2);const lines=b.b?wrap(c,b.b,ws[k]-2*PADX):[];LS(c,0);const th=b.t?tf+16:0;h=Math.max(h,b.h||0,2*PADY+th+lines.length*lh);return{i,w:ws[k],lines,th}});
+  let xx=PX;its.forEach((it,k)=>{const l=k==0,r=k==its.length-1;bx.push({i:it.i,x:xx,y:y2,w:it.w,h,row:ri,lines:it.lines,th:it.th,rad:[first&&l?R:sm,first&&r?R:sm,last&&r?R:sm,last&&l?R:sm]});xx+=it.w+GI});
+  y2+=h+GI});
+ const leftH=bx.length?y2-GI-top:0,rx=PX+lw+G;let yy=top;
+ const pr=S.photos.map(p=>{const r={x:rx,y:yy,w:rw,h:p.h};yy+=p.h+GI;return r});
+ if(!pr.length){pr.push({x:rx,y:top,w:rw,h:240});yy=top+240+GI}
+ const colH=Math.max(leftH,yy-GI-top,120);
+ if(leftH&&leftH<colH)bx.forEach(b=>{if(b.row==rows.length-1)b.h+=colH-leftH});
+ const cl=String(S.credit||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3);if(!cl.join('').replace(/[©\s]/g,''))cl.length=0;
+ let ft=null;const lab=String(S.fl||'').trim(),mq=String(S.mq||'').trim();
+ if(S.foot&&(lab||mq||cl.length)){c.font=`15px ${F}`;LS(c,.3);const lw1=lab?Math.ceil(c.measureText(lab).width)+40:0;
+  c.font=`13px ${F}`;LS(c,.2);let cw=0,cLines=[];if(cl.length){cLines=cl.flatMap(l=>wrap(c,l,208));cw=Math.min(240,Math.ceil(Math.max(...cLines.map(l=>c.measureText(l).width)))+32)}LS(c,0);
+  const ch=cl.length?Math.max(FH,cLines.length*18+20):0,rowH=Math.max(FH,ch),x1=W-M,mx=PX+(lw1?lw1+10:0);
+  ft={y:top+colH+22,rowH,lw1,lab,mq,mx,mw:x1-(cw?cw+10:0)-mx,cx:x1-cw,cw,ch,cLines}}
+ return{tabs,top,bx,lh,tf,colH,pr,cl,ft,H:Math.round(top+colH+M+(ft?22+ft.rowH:0))}}
+const mqOn=()=>!!S.foot&&String(S.mq||'').trim().length>0;
+function mqW(){measure();mc.font=`15px ${F}`;LS(mc,.3);const w=mc.measureText(String(S.mq).trim()+'     •     ').width;LS(mc,0);return w}
+function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.floor(u),sin=Math.sin;let dy=0,rot=0,sx=1,sy=1,al=1,anc=0;
+ if(s.an=='float'){dy=-12*A*sin(p);rot=.04*A*sin(p)}
+ else if(s.an=='spin')rot=p;
+ else if(s.an=='sway')rot=.3*A*sin(p);
+ else if(s.an=='pulse')sx=sy=1+.1*A*sin(p);
+ else if(s.an=='bounce'){anc=1;const q=(u*2)%1,K=Math.min(A,2.5);       // 뿅뿅 점프: 공중 → 착지(찌그러짐)
+  if(q<.7){const e=sin(Math.PI*q/.7);dy=-34*A*e;sy=1+.1*K*e;sx=1-.06*K*e}
+  else{const e=sin(Math.PI*(q-.7)/.3);sy=Math.max(.5,1-.2*K*e);sx=1+.14*K*e}}
+ else if(s.an=='flip'){const c=Math.cos(p);sx=Math.abs(c)<.03?(c<0?-.03:.03):c}   // 키링처럼 세로축 회전
+ else if(s.an=='stick'){const K=Math.min(A,2.5);let sc=1;                          // 스티커 붙이기: 착! → 살짝 눌림 → 유지 → 떼어짐
+  if(f<.16){const e=f/.16,k=e*e;sc=1+.7*K+(.9-1-.7*K)*k;al=Math.min(1,e*4);rot=(1-k)*.25*K}
+  else if(f<.3){const e=(f-.16)/.14;sc=1-.1*Math.cos(e*Math.PI*1.5)*(1-e)}
+  else if(f>=.86){const e=(f-.86)/.14;al=1-e;sc=1+.12*e;rot=-.08*e*K;dy=-8*e}
+  sx=sy=sc}
+ return{dy,rot,sx,sy,al,anc}}
+function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
+ c.save();c.textBaseline='alphabetic';c.textAlign='left';if(mode=='stk')c.clearRect(0,0,W,H);
+ if(mode!='stk'){c.fillStyle=S.bg;c.fillRect(0,0,W,H);
+ const hh=hhOf(L),hi=img(S.header,t),g=c.createLinearGradient(0,0,0,hh);
+ if(hi){cover(c,hi,0,0,W,hh,0,S.hd);[[0,0],[.5,.2],[.8,.7],[1,1]].forEach(([o,a])=>g.addColorStop(o,rgba(S.bg,a)))}
+ else[[0,1],[.5,.6],[.8,.2],[1,0]].forEach(([o,a])=>g.addColorStop(o,rgba(S.accent,a)));
+ c.fillStyle=g;c.fillRect(0,0,W,hh);
+ // 인장 + 하얀 외곽선
+ c.save();c.shadowColor='rgba(0,0,0,.14)';c.shadowBlur=22;c.shadowOffsetY=6;c.beginPath();c.arc(E.cx,E.cy,E.r+Math.max(6,E.r*.08),0,7);c.fillStyle='#fff';c.fill();c.restore();
+ c.save();c.beginPath();c.arc(E.cx,E.cy,E.r,0,7);c.fillStyle=S.panel;c.fill();
+ const ei=img(S.emblem,t);
+ if(ei){c.clip();const k=Math.max(2*E.r/ei.naturalWidth,2*E.r/ei.naturalHeight),dw=ei.naturalWidth*k,dh=ei.naturalHeight*k;c.drawImage(ei,E.cx-dw/2,E.cy-dh/2,dw,dh)}
+ else{c.fillStyle=rgba(S.ink,.35);c.font=`16px ${F}`;LS(c,1.5);c.textAlign='center';c.fillText('인장',E.cx,E.cy+6);LS(c,0)}
+ c.restore();
+ // 닉네임 + 말풍선
+ const nby=216;c.textAlign='left';c.fillStyle=S.ink;c.font=`bold ${NS}px ${F}`;LS(c,-.4);const nw=c.measureText(S.nick).width;c.fillText(S.nick,E.nx,nby);LS(c,0);
+ if(S.desc.trim()){c.font=`14px ${F}`;LS(c,.2);const bx=Math.min(E.nx+nw+24,W-M-140),dl=wrap(c,S.desc,W-M-bx-32).slice(0,3),
+  mw=Math.max(...dl.map(l=>c.measureText(l).width)),cw=Math.min(W-M-bx,mw+32),ch=dl.length*21+16,y0=nby+6-ch,ty=Math.min(y0+ch/2,y0+ch-18);
+  c.fillStyle=S.panel;rr(c,bx,y0,cw,ch,Math.min(18,ch/2));c.fill();
+  c.beginPath();c.moveTo(bx+3,ty-6);c.lineTo(bx-9,ty+2);c.lineTo(bx+3,ty+8);c.closePath();c.fill();
+  c.fillStyle=S.ink;dl.forEach((l,i)=>c.fillText(l,bx+16,y0+23+i*21));LS(c,0)}
+ // 탭 버튼
+ c.font=`14px ${F}`;LS(c,.3);
+ for(const b of L.tabs){rr(c,b.x,b.y,b.w,TH,TH/2);c.fillStyle=S.pill;c.fill();c.fillStyle='#fff';c.textAlign='center';c.fillText(b.t,b.x+b.w/2+.15,b.y+TH/2+5)}
+ LS(c,0);c.textAlign='left';
+ // 왼쪽 칸
+ L.bx.forEach(r=>{const b=S.boxes[r.i];c.save();c.beginPath();c.roundRect(r.x,r.y,r.w,r.h,r.rad.map(v=>Math.min(v,r.w/2,r.h/2)));c.fillStyle=S.panel;c.fill();c.clip();
+  let ty=r.y+PADY;
+  if(b.t){c.font=`${L.tf}px ${F}`;LS(c,1.6);c.fillStyle=rgba(S.ink,.5);c.fillText(b.t.toUpperCase(),r.x+PADX,ty+L.tf*.85)}
+  ty+=r.th;c.font=`${S.tsize}px ${F}`;LS(c,.2);c.fillStyle=S.ink;
+  r.lines.forEach((l,i)=>c.fillText(l,r.x+PADX,ty+(L.lh-S.tsize)/2+S.tsize*.85+i*L.lh));LS(c,0);c.restore()});
+ // 페어 사진
+ if(!S.photos.length){const r=L.pr[0];rr(c,r.x,r.y,r.w,r.h,S.round);c.fillStyle=S.panel;c.fill();c.fillStyle=rgba(S.ink,.35);c.font=`16px ${F}`;LS(c,1.5);c.textAlign='center';c.fillText('페어사진',r.x+r.w/2,r.y+r.h/2+6);c.textAlign='left';LS(c,0)}
+ S.photos.forEach((p,i)=>{const r=L.pr[i],im=img(p.src,t);if(im)cover(c,im,r.x,r.y,r.w,r.h,S.round,p);else{rr(c,r.x,r.y,r.w,r.h,S.round);c.fillStyle=S.panel;c.fill()}
+  capDraw(c,p,r);
+  if(ui&&i==selP){rr(c,r.x+1,r.y+1,r.w-2,r.h-2,S.round);c.setLineDash([8,5]);c.strokeStyle='#666';c.lineWidth=2;c.stroke();c.setLineDash([])}});
+ if(L.ft){const f=L.ft,yc=h=>f.y+(f.rowH-h)/2;
+ if(f.lab){const py=yc(FH);rr(c,PX,py,f.lw1,FH,FH/2);c.fillStyle=S.pill;c.fill();c.fillStyle='#fff';c.font=`15px ${F}`;LS(c,.3);c.textAlign='center';c.fillText(f.lab,PX+f.lw1/2+.15,py+FH/2+5);LS(c,0);c.textAlign='left'}
+ if(f.mq&&f.mw>60){const py=yc(FH);rr(c,f.mx,py,f.mw,FH,FH/2);c.fillStyle=S.bg;c.fill();c.lineWidth=1.6;c.strokeStyle=S.pill;c.stroke();
+  c.save();rr(c,f.mx+1,py+1,f.mw-2,FH-2,FH/2-1);c.clip();c.font=`15px ${F}`;LS(c,.3);c.fillStyle=S.ink;c.textAlign='left';
+  const unit=f.mq+'     •     ',uw=c.measureText(unit).width,v=S.mqv||60,off=MQ?(t/MQ.T*Math.max(1,Math.round(v*MQ.T/uw))*uw)%uw:(t*v)%uw;
+  for(let x=f.mx+22-off-uw;x<f.mx+f.mw;x+=uw)c.fillText(unit,x,py+FH/2+5);
+  for(const[x0,a,b]of[[f.mx,1,0],[f.mx+f.mw-30,0,1]]){const g=c.createLinearGradient(x0,0,x0+30,0);g.addColorStop(0,rgba(S.bg,a));g.addColorStop(1,rgba(S.bg,b));c.fillStyle=g;c.fillRect(x0,py,30,FH)}
+  LS(c,0);c.restore()}
+ if(f.cw){const py=yc(f.ch);rr(c,f.cx,py,f.cw,f.ch,Math.min(f.ch/2,22));c.fillStyle=S.bg;c.fill();c.lineWidth=1.4;c.strokeStyle=rgba(S.pill,.3);c.stroke();
+  c.font=`13px ${F}`;LS(c,.2);c.fillStyle=rgba(S.ink,.55);c.textAlign='center';f.cLines.forEach((l,i)=>c.fillText(l,f.cx+f.cw/2,py+(f.ch-f.cLines.length*18)/2+13+i*18));LS(c,0);c.textAlign='left'}}
+ }
+ // 스티커
+ if(mode!='bg')S.stk.forEach((s,i)=>{const im=img(s.src,t);if(!im)return;const a=anim(s,t),w=s.size,h=w*im.naturalHeight/im.naturalWidth;
+  c.save();c.translate(s.x,s.y+a.dy);c.rotate(a.rot);c.globalAlpha=a.al;if(a.anc){c.translate(0,h/2);c.scale(a.sx,a.sy);c.translate(0,-h/2)}else c.scale(a.sx,a.sy);c.drawImage(im,-w/2,-h/2,w,h);c.globalAlpha=1;
+  if(ui&&i==sel){c.setLineDash([6,4]);c.strokeStyle='#666';c.lineWidth=2;c.strokeRect(-w/2,-h/2,w,h)}c.restore()});
+ c.restore()}
+const allTxt=()=>S.nick+S.desc+S.tabs.join('')+S.boxes.map(b=>b.t+b.b).join('')+'인장페어사진0123456789';
+let fk='';function ensureFont(){const k=S.font+'|'+allTxt();if(k!==fk){fk=k;document.fonts.load(`16px "${S.font}"`,allTxt()).catch(()=>{});document.fonts.load(`bold 16px "${S.font}"`,S.nick).catch(()=>{})}}
+async function addFont(name,src){const ff=new FontFace(name,src);await ff.load();document.fonts.add(ff);
+ if(![...$('#i-font').options].some(o=>o.value==name)){const o=document.createElement('option');o.value=o.textContent=name;$('#i-font').append(o)}}
+$('#ff').onchange=async e=>{const f=e.target.files[0];if(!f)return;const name=f.name.replace(/\.[^.]+$/,'');
+ try{await addFont(name,await f.arrayBuffer());S.font=name;ui();save();status(`글꼴 '${name}'을(를) 추가했어요`)}catch(x){status('글꼴 파일을 읽지 못했어요 (ttf, otf, woff, woff2만 가능해요)')}e.target.value=''};
+function loop(){ensureFont();const H=measure().H;if(cv.height!=H)cv.height=H;draw(cx,playing?performance.now()/1000:0,true);requestAnimationFrame(loop)}
+// ---------- files
+async function rdm(f,max,png){if(f.type=='image/gif'){const src=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});if(src.length>8e6)status('GIF 용량이 커서 자동 저장이 안 될 수 있어요. JSON으로 따로 저장해 주세요.');return src}return rd(f,max,png)}
+async function rd(f,max,png){const b=await createImageBitmap(f),k=Math.min(1,max/Math.max(b.width,b.height)),c=document.createElement('canvas');c.width=Math.round(b.width*k);c.height=Math.round(b.height*k);c.getContext('2d').drawImage(b,0,0,c.width,c.height);return c.toDataURL(png?'image/png':'image/jpeg',.92)}
+document.addEventListener('change',async e=>{const k=e.target.dataset.file;if(!k)return;
+ for(const f of e.target.files){try{
+  if(k=='header'){S.header=await rdm(f,1600,false);S.hd={z:1,ox:0,oy:0}}
+  else if(k=='emblem')S.emblem=await rdm(f,600,true);
+  else if(k=='photos'){S.photos.push({src:await rdm(f,1400,false),z:1,ox:0,oy:0,h:240,cap:''});selP=S.photos.length-1;sel=-1}
+  else if(k=='stk'){const src=await rdm(f,800,true),i=new Image();i.src=src;await i.decode();S.stk.push({src,x:W/2+Math.random()*60-30,y:200+Math.random()*60,size:Math.min(160,i.naturalWidth),an:'float',sp:1,amp:1});sel=S.stk.length-1;selP=-1}
+ }catch(err){status('이미지를 불러오지 못했어요: '+f.name)}}
+ e.target.value='';ui();save()});
+// ---------- UI
+const sl=(a,l,i,f,mn,mx,st,v)=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${v} data-a=${a} data-i=${i} data-f=${f}></label>`;
+function ui(){
+ for(const [id,k] of [['font','font'],['nick','nick'],['em','emSize'],['desc','desc'],['accent','accent'],['panel','panel'],['pill','pill'],['bg','bg'],['ink','ink'],['round','round'],['credit','credit'],['fl','fl'],['mq','mq'],['mqv','mqv'],['cr','colRatio'],['ts','tsize']])$('#i-'+id).value=S[k];
+ $('#i-foot').checked=!!S.foot;
+ $('#hdctl').innerHTML=S.header?[['확대','z',1,4,.05],['가로 위치','ox',-1,1,.02],['세로 위치','oy',-1,1,.02]].map(([l,f,mn,mx,st])=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${S.hd[f]} data-o=hd data-f=${f}></label>`).join(''):'';
+ $('#boxes').innerHTML=S.boxes.map((b,i)=>`<div style="border:1.2px solid var(--p);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px"><div class=row><input type=text value="${esc(b.t)}" placeholder="제목 (비워도 돼요)" data-a=boxes data-i=${i} data-f=t aria-label="칸 제목"><button data-mvb=-1 data-i=${i} aria-label="위로">▲</button><button data-mvb=1 data-i=${i} aria-label="아래로">▼</button><button data-x=boxes data-i=${i} aria-label="삭제">✕</button></div><textarea data-a=boxes data-i=${i} data-f=b aria-label="칸 내용">${esc(b.b)}</textarea><label style="display:flex;gap:6px;align-items:center"><input type=checkbox data-a=boxes data-i=${i} data-f=half ${b.half?'checked':''}> 반칸 (옆 칸과 짝을 이뤄요)</label>${sl('boxes','최소 높이',i,'h',0,600,5,b.h)}${sl('boxes','너비 비율 (반칸일 때)',i,'wt',20,80,5,b.wt)}</div>`).join('');
+ $('#tabs').innerHTML=S.tabs.map((t,i)=>`<div class=row><input type=text value="${esc(t)}" data-a=tabs data-i=${i} aria-label="버튼 ${i+1}"><button data-x=tabs data-i=${i} aria-label="삭제">✕</button></div>`).join('');
+ $('#photos').innerHTML=S.photos.map((p,i)=>`<div class="th${i==selP?' on':''}" data-selp=${i} tabindex=0 role=button aria-label="사진 ${i+1} 선택"><img src="${p.src}" alt=""><button data-x=photos data-i=${i} aria-label="삭제">✕</button></div>`).join('');
+ const p=S.photos[selP];
+ $('#phctl').innerHTML=p?`<textarea placeholder="첫 줄: 페어명&#10;둘째 줄: 한 줄 소개" style="min-height:56px" data-a=photos data-i=${selP} data-f=cap aria-label="사진 문구">${esc(p.cap||'')}</textarea>`+sl('photos','확대',selP,'z',1,4,.05,p.z)+sl('photos','가로 위치',selP,'ox',-1,1,.02,p.ox)+sl('photos','세로 위치',selP,'oy',-1,1,.02,p.oy)+sl('photos','칸 높이',selP,'h',120,800,5,p.h)+`<div class=row><button data-mv=-1 data-i=${selP}>◀ 앞으로</button><button data-mv=1 data-i=${selP}>뒤로 ▶</button></div>`:'<small>사진을 선택하면 확대·위치·높이를 조절할 수 있어요. 사진을 계속 추가하면 이미지가 아래로 길어져요.</small>';
+ $('#stks').innerHTML=S.stk.map((s,i)=>`<div class="th${i==sel?' on':''}" data-sel=${i} tabindex=0 role=button aria-label="스티커 ${i+1} 선택"><img src="${s.src}" alt=""></div>`).join('');
+ const s=S.stk[sel];
+ $('#stctl').innerHTML=s?`<div style="display:flex;flex-direction:column;gap:8px"><label>크기 <input type=range min=30 max=600 value=${s.size} data-a=stk data-i=${sel} data-f=size></label>
+ <select data-a=stk data-i=${sel} data-f=an aria-label="애니메이션">${[['none','움직임 없음'],['float','둥실둥실'],['spin','뱅글뱅글'],['sway','흔들흔들'],['pulse','콩닥콩닥'],['bounce','뿅뿅 점프'],['stick','스티커 붙이기'],['flip','키링 회전 (세로축)']].map(o=>`<option value=${o[0]}${s.an==o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
+ <select data-a=stk data-i=${sel} data-f=sp data-n=1 aria-label="속도">${[1,2,3].map(v=>`<option value=${v}${s.sp==v?' selected':''}>${['보통','2배 빠르게','3배 빠르게'][v-1]}</option>`).join('')}</select>
+ <label>움직임 크기 (점프 높이·붙이는 세기 등) <input type=range min=.2 max=4 step=.1 value=${s.amp||1} data-a=stk data-i=${sel} data-f=amp></label>
+ <button data-x=stk data-i=${sel}>이 스티커 삭제</button></div>`:'<small>스티커를 선택하면 크기와 움직임을 고를 수 있어요.</small>'}
+document.addEventListener('input',e=>{const d=e.target.dataset;
+ if(d.a){const v=e.target.type=='checkbox'?e.target.checked:(e.target.type=='range'||d.n)?+e.target.value:e.target.value;if(d.f)S[d.a][d.i][d.f]=v;else S[d.a][d.i]=v}
+ else if(d.k)S[d.k]=e.target.type=='checkbox'?e.target.checked:e.target.type=='range'?+e.target.value:e.target.value;
+ else if(d.o)S[d.o][d.f]=+e.target.value;
+ else return;save()});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-x],[data-add],[data-clr],[data-sel],[data-selp],[data-mv],[data-mvb],[data-preset]');if(!b)return;const d=b.dataset;
+ if(d.preset!=null){Object.assign(S,PRESETS[+d.preset][1]);ui();save();return}
+ if(d.x){S[d.x].splice(+d.i,1);if(d.x=='stk')sel=-1;if(d.x=='photos')selP=-1;ui();save()}
+ else if(d.mv){const i=+d.i,j=i+ +d.mv;if(S.photos[j]){[S.photos[i],S.photos[j]]=[S.photos[j],S.photos[i]];selP=j;ui();save()}}
+ else if(d.mvb){const i=+d.i,j=i+ +d.mvb;if(S.boxes[j]){[S.boxes[i],S.boxes[j]]=[S.boxes[j],S.boxes[i]];ui();save()}}
+ else if(d.add){if(d.add=='boxes')S.boxes.push({t:'새 칸',b:'',half:false,h:0,wt:50});else S.tabs.push('새 버튼');ui();save()}
+ else if(d.clr){S[d.clr]=null;save()}
+ else if(d.sel!=null){sel=+d.sel;selP=-1;ui()}
+ else if(d.selp!=null){selP=+d.selp;sel=-1;ui()}});
+document.addEventListener('keydown',e=>{if(e.key!='Enter')return;const d=e.target.dataset;if(d.sel!=null){sel=+d.sel;selP=-1;ui()}else if(d.selp!=null){selP=+d.selp;sel=-1;ui()}});
+// ---------- 캔버스 드래그 / 휠
+const pt=e=>{const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*cv.height/r.height}};
+const hitP=p=>{if(!S.photos.length)return -1;const R=measure().pr;for(let i=R.length-1;i>=0;i--){const r=R[i];if(p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h)return i}return -1};
+cv.onpointerdown=e=>{const p=pt(e);
+ for(let i=S.stk.length-1;i>=0;i--){const s=S.stk[i],im=img(s.src);if(!im)continue;const w=s.size,h=w*im.naturalHeight/im.naturalWidth;
+  if(Math.abs(p.x-s.x)<w/2&&Math.abs(p.y-s.y)<h/2){sel=i;selP=-1;drag={k:'s',dx:s.x-p.x,dy:s.y-p.y};cv.setPointerCapture(e.pointerId);ui();return}}
+ const i=hitP(p);if(i>=0){selP=i;sel=-1;drag={k:'p',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);ui();return}
+ if(S.header&&p.y<hhOf(measure())){drag={k:'h',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);sel=-1;selP=-1;ui();return}
+ sel=-1;selP=-1;ui()};
+cv.onpointermove=e=>{if(!drag)return;const p=pt(e);
+ if(drag.k=='s'){const s=S.stk[sel];s.x=p.x+drag.dx;s.y=p.y+drag.dy}
+ else{const hd=drag.k=='h',ph=hd?S.hd:S.photos[selP],im=img(hd?S.header:ph.src),r=hd?{w:W,h:hhOf(measure())}:measure().pr[selP];if(!im)return;const k=Math.max(r.w/im.naturalWidth,r.h/im.naturalHeight)*ph.z,rx=(im.naturalWidth*k-r.w)/2,ry=(im.naturalHeight*k-r.h)/2;
+  if(rx>.5)ph.ox=clamp(ph.ox+(p.x-drag.x)/rx,-1,1);if(ry>.5)ph.oy=clamp(ph.oy+(p.y-drag.y)/ry,-1,1);drag.x=p.x;drag.y=p.y}};
+cv.onpointerup=()=>{if(drag){const k=drag.k;drag=null;if(k=='p'||k=='h')ui();save()}};
+cv.addEventListener('wheel',e=>{const p=pt(e),i=hitP(p),f=e.deltaY<0?1.06:.94;
+ if(i>=0){e.preventDefault();const ph=S.photos[i];ph.z=clamp(ph.z*f,1,4);selP=i;sel=-1;ui();save()}
+ else if(S.header&&p.y<hhOf(measure())){e.preventDefault();S.hd.z=clamp(S.hd.z*f,1,4);ui();save()}},{passive:false});
+// ---------- 저장
+let tm;function save(){clearTimeout(tm);tm=setTimeout(()=>{try{localStorage.setItem('maintweet',JSON.stringify(S))}catch(e){}},400)}
+function status(m){$('#st').textContent=m}
+const dl=(b,n)=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)};
+const setS=o=>{S=mig(o);sel=selP=-1;ui();save()};
+$('#sv').onclick=()=>dl(new Blob([JSON.stringify(S)],{type:'application/json'}),'project.json');
+$('#ld').onchange=async e=>{try{setS(JSON.parse(await e.target.files[0].text()))}catch(x){status('JSON을 읽지 못했어요')}e.target.value=''};
+$('#pj').onclick=()=>fetch('project.json').then(r=>r.ok?r.json():Promise.reject()).then(setS).catch(()=>status('project.json을 찾지 못했어요'));
+$('#rs').onclick=()=>{if(confirm('모든 내용을 지우고 처음 상태로 돌릴까요?'))setS({})};
+$('#play').onclick=e=>{playing=!playing;e.target.textContent=playing?'⏸ 멈춤':'▶ 재생'};
+// ---------- 내보내기
+async function ready(){try{await document.fonts.load(`16px "${S.font}"`,allTxt());await document.fonts.load(`bold 16px "${S.font}"`,S.nick)}catch(e){}await Promise.all([S.header,S.emblem,...S.photos.map(p=>p.src),...S.stk.map(s=>s.src)].filter(Boolean).map(s=>{img(s);if(isGif(s))return gp[s].then(()=>{if(gifs[s]===0){img(s);return cache[s].decode().catch(()=>{})}});return cache[s].decode().catch(()=>{})}))}
+async function pngExport(mode,name){await ready();const c=document.createElement('canvas');c.width=W*2;c.height=measure().H*2;const x=c.getContext('2d');x.scale(2,2);draw(x,0,false,mode);await new Promise(r=>c.toBlob(b=>{dl(b,name);r()}));status('PNG를 저장했어요')}
+$('#png').onclick=()=>pngExport(null,'maintweet.png');
+function lzw(px){const buf=[];let bits=0,nb=0,cs=9,next=258,d=new Map();
+ const emit=(c,s)=>{bits|=c<<nb;nb+=s;while(nb>=8){buf.push(bits&255);bits>>=8;nb-=8}};
+ emit(256,cs);let p=px[0];
+ for(let i=1;i<px.length;i++){const c=px[i],k=(p<<8)|c,v=d.get(k);
+  if(v!==undefined)p=v;else{emit(p,cs);if(next<4096){if(next>=(1<<cs))cs++;d.set(k,next++)}else{emit(256,cs);d.clear();next=258;cs=9}p=c}}
+ emit(p,cs);emit(257,cs);if(nb>0)buf.push(bits&255);return Uint8Array.from(buf)}
+const w2=(a,v)=>a.push(v&255,v>>8&255);
+function gifHead(zw,zh,pal){const h=[...'GIF89a'].map(c=>c.charCodeAt(0));w2(h,zw);w2(h,zh);h.push(0xF7,0,0);for(let i=0;i<768;i++)h.push(pal[i]||0);
+ h.push(0x21,0xFF,11,...[...'NETSCAPE2.0'].map(c=>c.charCodeAt(0)),3,1,0,0,0);return new Uint8Array(h)}
+function gifFrame(f,delay,tr,dis,rx,ry,rw,rh){const g=[0x21,0xF9,4,(dis<<2)|(tr>=0?1:0)];w2(g,delay);g.push(tr>=0?tr:0,0,0x2C);w2(g,rx);w2(g,ry);w2(g,rw);w2(g,rh);g.push(0,8);
+ const b=lzw(f),blk=new Uint8Array(b.length+Math.ceil(b.length/255)+1);let p=0;
+ for(let i=0;i<b.length;i+=255){const n=Math.min(255,b.length-i);blk[p++]=n;blk.set(b.subarray(i,i+n),p);p+=n}blk[p]=0;return[new Uint8Array(g),blk]}
+// 중간값 분할(median cut)로 256색 팔레트 만들기 (6bit 정밀도)
+let PALOPT={sq:.5,km:4,w:[2,4,3]};
+// 팔레트 만들기: 중간값 분할 → 반복 보정(k-means)으로 색 오차를 줄여요
+function medianCut(cnt,sr,sg,sb,n){const PO=PALOPT,wt=PO.w;
+ const w=new Float64Array(262144);for(let k=0;k<262144;k++)if(cnt[k])w[k]=Math.pow(cnt[k],PO.sq);
+ const ch=(k,c)=>c==0?k>>12:c==1?(k>>6)&63:k&63;
+ const mk=a=>{let p=0;const lo=[63,63,63],hi=[0,0,0];for(const k of a){p+=w[k];for(let c=0;c<3;c++){const v=ch(k,c);if(v<lo[c])lo[c]=v;if(v>hi[c])hi[c]=v}}
+  let ax=0,rg=-1;for(let c=0;c<3;c++)if((hi[c]-lo[c])*wt[c]>rg){rg=(hi[c]-lo[c])*wt[c];ax=c}return{a,p,ax,s:a.length>1?p*(rg+4):0}};
+ const keys=[];for(let k=0;k<262144;k++)if(cnt[k])keys.push(k);
+ if(!keys.length)return[0,0,0];
+ const B=[mk(keys)];
+ while(B.length<n){let bi=-1,bs=0;B.forEach((b,i)=>{if(b.s>bs){bs=b.s;bi=i}});if(bi<0)break;
+  const b=B[bi],a=b.a.slice().sort((x,y)=>ch(x,b.ax)-ch(y,b.ax));let acc=0,cut=1;
+  for(let i=0;i<a.length-1;i++){acc+=w[a[i]];cut=i+1;if(acc>=b.p/2)break}
+  B[bi]=mk(a.slice(0,cut));B.push(mk(a.slice(cut)))}
+ const pal=[];for(const b of B){let r=0,g=0,bl=0,p=0;for(const k of b.a){r+=sr[k];g+=sg[k];bl+=sb[k];p+=cnt[k]}pal.push(Math.round(r/p),Math.round(g/p),Math.round(bl/p))}
+ // 보정: 각 색을 가장 가까운 팔레트에 묶고, 팔레트를 그 평균으로 옮기기
+ const m=pal.length/3,mr=new Float32Array(keys.length),mg=new Float32Array(keys.length),mb=new Float32Array(keys.length),kw=new Float32Array(keys.length);
+ keys.forEach((k,i)=>{mr[i]=sr[k]/cnt[k];mg[i]=sg[k]/cnt[k];mb[i]=sb[k]/cnt[k];kw[i]=w[k]});
+ for(let it=0;it<PO.km;it++){const ar=new Float64Array(m),ag=new Float64Array(m),ab=new Float64Array(m),aw=new Float64Array(m);
+  for(let i=0;i<keys.length;i++){let bi=0,bd=1e18;for(let j=0;j<m;j++){const dr=mr[i]-pal[j*3],dg=mg[i]-pal[j*3+1],db=mb[i]-pal[j*3+2],d=wt[0]*dr*dr+wt[1]*dg*dg+wt[2]*db*db;if(d<bd){bd=d;bi=j}}
+   ar[bi]+=mr[i]*kw[i];ag[bi]+=mg[i]*kw[i];ab[bi]+=mb[i]*kw[i];aw[bi]+=kw[i]}
+  for(let j=0;j<m;j++)if(aw[j]>0){pal[j*3]=Math.round(ar[j]/aw[j]);pal[j*3+1]=Math.round(ag[j]/aw[j]);pal[j*3+2]=Math.round(ab[j]/aw[j])}}
+ return pal}
+function buildLut(pal){const n=pal.length/3,lut=new Uint8Array(262144),wt=PALOPT.w;
+ for(let k=0;k<262144;k++){const r=((k>>12)<<2)|2,g=(((k>>6)&63)<<2)|2,b=((k&63)<<2)|2;let bi=0,bd=1e9;
+  for(let i=0;i<n;i++){const dr=r-pal[i*3],dg=g-pal[i*3+1],db=b-pal[i*3+2],dd=wt[0]*dr*dr+wt[1]*dg*dg+wt[2]*db*db;if(dd<bd){bd=dd;bi=i}}lut[k]=bi}return lut}
+function fsQuant(d,z,zh,pal,lut){const o=new Uint8Array(z*zh);let cur=new Float32Array((z+2)*3),nxt=new Float32Array((z+2)*3);
+ for(let y=0;y<zh;y++){nxt.fill(0);
+  for(let x=0;x<z;x++){const j=y*z+x,i=j<<2,R=d[i],G=d[i+1],B=d[i+2],k0=lut[((R>>2)<<12)|((G>>2)<<6)|(B>>2)];
+   if((R-pal[k0*3])**2+(G-pal[k0*3+1])**2+(B-pal[k0*3+2])**2<=24){o[j]=k0;continue}
+   const c=(x+1)*3;let r=R+cur[c],g=G+cur[c+1],b=B+cur[c+2];r=r<0?0:r>255?255:r;g=g<0?0:g>255?255:g;b=b<0?0:b>255?255:b;
+   const k=lut[((r>>2)<<12)|((g>>2)<<6)|(b>>2)];o[j]=k;
+   const er=r-pal[k*3],eg=g-pal[k*3+1],eb=b-pal[k*3+2];
+   cur[c+3]+=er*.4375;cur[c+4]+=eg*.4375;cur[c+5]+=eb*.4375;
+   nxt[c-3]+=er*.1875;nxt[c-2]+=eg*.1875;nxt[c-1]+=eb*.1875;
+   nxt[c]+=er*.3125;nxt[c+1]+=eg*.3125;nxt[c+2]+=eb*.3125;
+   nxt[c+3]+=er*.0625;nxt[c+4]+=eg*.0625;nxt[c+5]+=eb*.0625}
+  const t=cur;cur=nxt;nxt=t}
+ return o}
+const bay=n=>{if(n==1)return[[0]];const m=bay(n/2),t=[[0,2],[3,1]],h=n/2,r=[];for(let y=0;y<n;y++){r[y]=[];for(let x=0;x<n;x++)r[y][x]=4*m[y%h][x%h]+t[y<h?0:1][x<h?0:1]}return r};
+const BM=bay(8),tick=()=>new Promise(r=>setTimeout(r));
+async function gifExport(layer){if(busy)return false;const stk=layer=='stk';
+ if(stk&&!S.stk.length){status('스티커가 없어요. 스티커를 먼저 추가해 주세요.');return false}
+ busy=true;let ok=false;try{
+ await ready();const dmode=$('#dth').value,fit=$('#fit').checked,fps=+$('#fps').value,LIM=15*1048576*.97;
+ const gd=[],addg=s=>{if(isGif(s)&&gifs[s]&&gifs[s].total)gd.push(gifs[s].total)};S.stk.forEach(s=>addg(s.src));if(!stk){addg(S.header);addg(S.emblem);S.photos.forEach(p=>addg(p.src))}
+ let T=0;if(gd.length){const g=(a,b)=>b?g(b,a%b):a,l=gd.reduce((a,b)=>a/g(a,b)*b);T=l<=12000?l:Math.min(Math.max(...gd),12000)}
+ if(S.stk.some(s=>s.an!='none')){if(!T)T=2000;else if(T<2000)T*=Math.ceil(2000/T)}
+ if(!stk&&mqOn()){if(!T)T=clamp(Math.round(mqW()/(S.mqv||60)*1000),2000,12000);else if(T<2000)T*=Math.ceil(2000/T)}
+ T=Math.min(T,12000);MQ=(!stk&&mqOn()&&T)?{T:T/1000}:null;let N,dly;const plan=f=>{N=T?Math.min(300,Math.max(2,Math.round(T*f/1000))):1;dly=Math.max(2,Math.round(100/f))};plan(fps);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;
+ const encode=async z=>{const zh=Math.round(z*measure().H/W),c=document.createElement('canvas');c.width=z;c.height=zh;const x=c.getContext('2d',{willReadFrequently:true});
+  const render=i=>{x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,z,zh);x.setTransform(z/W,0,0,z/W,0,0);draw(x,T/1000*i/N,false,stk?'stk':null);return x.getImageData(0,0,z,zh).data};
+  status('색상 분석 중…');await tick();
+  const cnt=new Float64Array(262144),sr=new Float64Array(262144),sg=new Float64Array(262144),sb=new Float64Array(262144);
+  for(const j of new Set([0,N>>2,N>>1,(N*3)>>2])){const d=render(j);for(let i=0;i<d.length;i+=4){if(stk&&d[i+3]<128)continue;const k=((d[i]>>2)<<12)|((d[i+1]>>2)<<6)|(d[i+2]>>2);cnt[k]++;sr[k]+=d[i];sg[k]+=d[i+1];sb[k]+=d[i+2]}}
+  const pal=medianCut(cnt,sr,sg,sb,255);await tick();const lut=buildLut(pal);
+  const BO=new Float32Array(64);for(let y=0;y<8;y++)for(let xx=0;xx<8;xx++)BO[y*8+xx]=dmode=='none'?0:(BM[y][xx]/64-.5)*20;
+  const parts=[gifHead(z,zh,pal)];let prev=null;
+  let rawP=null,raw0=null,o0=null;
+  for(let f=0;f<N;f++){const d=render(f);let o;
+   if(!stk&&dmode=='fs'&&f==0){o=fsQuant(d,z,zh,pal,lut);o0=o;raw0=d}
+   else{o=new Uint8Array(z*zh);
+    for(let y=0,j=0;y<zh;y++)for(let xx=0;xx<z;xx++,j++){const i=j<<2;if(stk&&d[i+3]<128){o[j]=255;continue}
+     const R0=d[i],G0=d[i+1],B0=d[i+2];
+     if(rawP&&R0==rawP[i]&&G0==rawP[i+1]&&B0==rawP[i+2]){o[j]=prev[j];continue}
+     if(raw0&&R0==raw0[i]&&G0==raw0[i+1]&&B0==raw0[i+2]){o[j]=o0[j];continue}
+     const k0=lut[((R0>>2)<<12)|((G0>>2)<<6)|(B0>>2)];if((R0-pal[k0*3])**2+(G0-pal[k0*3+1])**2+(B0-pal[k0*3+2])**2<=24){o[j]=k0;continue}
+     const b=BO[((y&7)<<3)|(xx&7)];let r=R0+b,g=G0+b,bl=B0+b;
+     r=r<0?0:r>255?255:r;g=g<0?0:g>255?255:g;bl=bl<0?0:bl>255?255:bl;o[j]=lut[((r>>2)<<12)|((g>>2)<<6)|(bl>>2)]}}
+   if(stk)parts.push(...gifFrame(o,dly,255,2,0,0,z,zh));
+   else if(!prev)parts.push(...gifFrame(o,dly,-1,1,0,0,z,zh));
+   else{ // 바뀐 부분만 저장해서 용량을 크게 줄여요
+    let x0=z,y0=zh,x1=-1,y1=-1;for(let y=0,j=0;y<zh;y++)for(let xx=0;xx<z;xx++,j++)if(o[j]!==prev[j]){if(xx<x0)x0=xx;if(xx>x1)x1=xx;if(y<y0)y0=y;y1=y}
+    if(x1<0){x0=y0=0;x1=y1=0}
+    const rw=x1-x0+1,rh=y1-y0+1,sub=new Uint8Array(rw*rh);let k=0;
+    for(let yy=0;yy<rh;yy++)for(let xx=0;xx<rw;xx++){const j=(y0+yy)*z+x0+xx;sub[k++]=o[j]===prev[j]?255:o[j]}
+    parts.push(...gifFrame(sub,dly,255,1,x0,y0,rw,rh))}
+   prev=o;if(!stk)rawP=d;status(`GIF 만드는 중 ${f+1}/${N} (가로 ${z}px)`);await tick()}
+  parts.push(new Uint8Array([0x3B]));return new Blob(parts,{type:'image/gif'})};
+ let z=+$('#gz').value,fp=fps,blob=await encode(z),tr=0;
+ while(fit&&blob.size>LIM&&tr<6){tr++;
+  if(T&&fp>12){fp=12;plan(fp);status('15MB를 넘어서 프레임 수를 줄여(12fps) 다시 만드는 중…')}
+  else if(T&&fp>8){fp=8;plan(fp);status('아직 커서 프레임 수를 더 줄여(8fps) 다시 만드는 중…')}
+  else{const nz=Math.max(400,Math.round(z*Math.sqrt(LIM/blob.size)*.95));if(nz>=z)break;z=nz;status(`아직 커서 가로 ${z}px로 줄여 다시 만드는 중…`)}
+  await tick();blob=await encode(z)}
+ dl(blob,stk?'maintweet_stickers.gif':'maintweet.gif');const mb=blob.size/1048576;
+ status(`GIF 저장 완료 (${mb.toFixed(1)}MB, 가로 ${z}px${T&&fp!=fps?', '+fp+'fps':''})${mb>15?' · 아직 15MB를 넘어요. 프레임을 「가볍게」로 하거나 크기를 줄여 주세요.':''}`);ok=true;
+}catch(err){console.error(err);status('GIF 저장에 실패했어요. 크기를 줄여 다시 시도해 주세요.')}STP=2;MQ=null;busy=false;return ok}
+// ---------- MP4 저장 (브라우저 WebCodecs로 H.264 인코딩 → MP4로 직접 묶기)
+const cat=a=>{let n=0;for(const x of a)n+=x.length;const o=new Uint8Array(n);let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
+const u8=(...v)=>Uint8Array.from(v),u16=n=>u8(n>>8&255,n&255),u32=n=>u8(n>>>24&255,n>>>16&255,n>>>8&255,n&255),str=s=>u8(...[...s].map(c=>c.charCodeAt(0)));
+const bx=(t,...c)=>{const b=cat(c);return cat([u32(b.length+8),str(t),b])};
+const MAT=cat([0x10000,0,0,0,0x10000,0,0,0,0x40000000].map(u32));
+function mp4Mux(w,h,desc,samples,fps){const n=samples.length,TS=90000,dur=Math.round(n*TS/fps),delta=Math.round(TS/fps),ms=Math.round(n*1000/fps);
+ const avc=bx('avc1',u8(0,0,0,0,0,0),u16(1),new Uint8Array(16),u16(w),u16(h),u32(0x480000),u32(0x480000),u32(0),u16(1),new Uint8Array(32),u16(0x18),u16(0xffff),bx('avcC',desc));
+ const sync=[];samples.forEach((s,i)=>{if(s.key)sync.push(i+1)});
+ const moov=base=>{let off=base;const offs=samples.map(s=>{const o=off;off+=s.d.length;return o});
+  return bx('moov',bx('mvhd',u32(0),u32(0),u32(0),u32(1000),u32(ms),u32(0x10000),u16(0x100),u16(0),u32(0),u32(0),MAT,new Uint8Array(24),u32(2)),
+   bx('trak',bx('tkhd',u32(3),u32(0),u32(0),u32(1),u32(0),u32(ms),new Uint8Array(8),u16(0),u16(0),u16(0),u16(0),MAT,u32(w<<16),u32(h<<16)),
+    bx('mdia',bx('mdhd',u32(0),u32(0),u32(0),u32(TS),u32(dur),u16(0x55c4),u16(0)),bx('hdlr',u32(0),u32(0),str('vide'),new Uint8Array(12),str('VideoHandler\0')),
+     bx('minf',bx('vmhd',u32(1),new Uint8Array(8)),bx('dinf',bx('dref',u32(0),u32(1),bx('url ',u32(1)))),
+      bx('stbl',bx('stsd',u32(0),u32(1),avc),bx('stts',u32(0),u32(1),u32(n),u32(delta)),bx('stsc',u32(0),u32(1),u32(1),u32(1),u32(1)),
+       bx('stsz',u32(0),u32(0),u32(n),...samples.map(s=>u32(s.d.length))),bx('stco',u32(0),u32(n),...offs.map(u32)),bx('stss',u32(0),u32(sync.length),...sync.map(u32)))))))};
+ const ftyp=bx('ftyp',str('isom'),u32(512),str('isom'),str('iso2'),str('avc1'),str('mp41'));
+ const m0=moov(0),m1=moov(ftyp.length+m0.length+8);let tot=0;for(const s of samples)tot+=s.d.length;
+ return new Blob([ftyp,m1,u32(tot+8),str('mdat'),...samples.map(s=>s.d)],{type:'video/mp4'})}
+async function mp4Export(){if(busy)return;
+ if(typeof VideoEncoder=='undefined'||typeof VideoFrame=='undefined'){status('이 브라우저는 MP4 저장을 지원하지 않아요. 크롬·엣지에서 열거나 GIF로 저장해 주세요.');return}
+ busy=true;try{await ready();
+  const fps=+$('#fps').value,rep=+$('#rep').value,z0=+$('#gz').value,zw=z0&~1,zh=Math.round(z0*measure().H/W)&~1;
+  const gd=[],addg=s=>{if(isGif(s)&&gifs[s]&&gifs[s].total)gd.push(gifs[s].total)};S.stk.forEach(s=>addg(s.src));addg(S.header);addg(S.emblem);S.photos.forEach(p=>addg(p.src));
+  let T=0;if(gd.length){const g=(a,b)=>b?g(b,a%b):a,l=gd.reduce((a,b)=>a/g(a,b)*b);T=l<=12000?l:Math.min(Math.max(...gd),12000)}
+  const anim=S.stk.some(s=>s.an!='none');if(anim){if(!T)T=2000;else if(T<2000)T*=Math.ceil(2000/T)}
+  if(mqOn()){if(!T)T=clamp(Math.round(mqW()/(S.mqv||60)*1000),2000,12000);else if(T<2000)T*=Math.ceil(2000/T)}
+  T=Math.min(T,12000);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;if(!T)T=3000;MQ=mqOn()?{T:T/1000}:null;
+  const N=Math.max(2,Math.round(T*fps/1000));
+  const cfg={codec:zw*zh>2097152?'avc1.640033':'avc1.640028',width:zw,height:zh,bitrate:clamp(Math.round(zw*zh*fps*.2),3e6,30e6),framerate:fps,avc:{format:'avc'},latencyMode:'quality'};
+  let sup=null;try{sup=await VideoEncoder.isConfigSupported(cfg)}catch(e){}
+  if(!sup||!sup.supported){status('이 브라우저는 MP4(H.264) 저장을 지원하지 않아요. 크롬·엣지에서 열거나 GIF로 저장해 주세요.');busy=false;STP=2;return}
+  const c=document.createElement('canvas');c.width=zw;c.height=zh;const x=c.getContext('2d'),samples=[];let desc=null,err=null;
+  const enc=new VideoEncoder({output:(ch,meta)=>{const d=new Uint8Array(ch.byteLength);ch.copyTo(d);if(meta&&meta.decoderConfig&&meta.decoderConfig.description)desc=new Uint8Array(meta.decoderConfig.description);samples.push({d,key:ch.type=='key'})},error:e=>{err=e}});
+  enc.configure(cfg);
+  for(let i=0;i<N;i++){if(err)throw err;x.setTransform(1,0,0,1,0,0);x.fillStyle=S.bg;x.fillRect(0,0,zw,zh);x.setTransform(zw/W,0,0,zw/W,0,0);draw(x,T/1000*i/N,false,null);
+   const fr=new VideoFrame(c,{timestamp:Math.round(i*1e6/fps),duration:Math.round(1e6/fps)});enc.encode(fr,{keyFrame:i%Math.round(fps*2)==0});fr.close();
+   status(`MP4 만드는 중 ${i+1}/${N}`);while(enc.encodeQueueSize>8)await tick();if(i%4==0)await tick()}
+  await enc.flush();enc.close();if(err)throw err;if(!desc)throw new Error('avcC 없음');
+  const all=[];for(let r=0;r<rep;r++)all.push(...samples);
+  const blob=mp4Mux(zw,zh,desc,all,fps);dl(blob,'maintweet.mp4');
+  const okSz=zh>=zw?(zw<=1200&&zh<=1900):(zw<=1920&&zh<=1200);
+  status(`MP4 저장 완료 (${(blob.size/1048576).toFixed(1)}MB, ${zw}×${zh}, ${(T*rep/1000).toFixed(1)}초)${okSz?'':' · 트위터 영상 최대 크기(세로형 1200×1900, 가로형 1920×1200)를 넘어요. 가로 크기를 줄여 주세요.'}`);
+ }catch(err){console.error(err);status('MP4 저장에 실패했어요. 가로 크기를 줄이거나 GIF로 저장해 주세요.')}STP=2;MQ=null;busy=false}
+$('#fmt').onchange=()=>{const m=$('#fmt').value=='mp4';$('#rep').style.display=m?'':'none';$('#dth').style.display=m?'none':'';$('#fit').closest('label').style.display=m?'none':'inline-flex'};
+$('#gif').onclick=()=>$('#fmt').value=='mp4'?mp4Export():gifExport(null);
+// ---------- 시작
+(async()=>{let ok=false;try{const l=localStorage.getItem('maintweet');if(l){S=mig(JSON.parse(l));ok=true}}catch(e){}
+ if(!ok)try{const r=await fetch('project.json');if(r.ok)S=mig(await r.json())}catch(e){}
+ try{const r=await fetch('fonts/fonts.json');if(r.ok)for(const f of await r.json())await addFont(f.name,`url(fonts/${encodeURI(f.file)})`)}catch(e){}
+ ui();try{await document.fonts.load(`16px "Gowun Dodum"`)}catch(e){}loop()})();
+</script>
+</body>
+</html>
