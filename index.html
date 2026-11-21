@@ -82,6 +82,7 @@ small{color:#9a8083;line-height:1.5}
  <div id="hdctl" style="display:flex;flex-direction:column;gap:8px"></div>
  <div class="row"><label class="btn">인장 이미지<input type="file" accept="image/*" data-file="emblem"></label><button data-clr="emblem">지우기</button></div>
  <label>인장 크기 <input type="range" data-k="emSize" min="50" max="120" id="i-em"></label>
+ <div id="emctl" style="display:flex;flex-direction:column;gap:8px"></div>
 </div></details>
 <details><summary>탭 버튼</summary><div id="tabs"></div><div><button data-add="tabs">+ 버튼 추가</button></div></details>
 <details open><summary>왼쪽 칸 (ABOUT · NG · 기타)</summary><div>
@@ -105,7 +106,7 @@ small{color:#9a8083;line-height:1.5}
  <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-k="foot" id="i-foot"> 하단 바 표시</label>
  <input type="text" data-k="fl" id="i-fl" placeholder="왼쪽 버튼 글씨 (기본: Main tweet)" aria-label="왼쪽 버튼 글씨">
  <input type="text" data-k="mq" id="i-mq" placeholder="흐르는 글자 (오른쪽에서 왼쪽으로 계속 반복)" aria-label="흐르는 글자">
- <label>흐르는 속도 <input type="range" data-k="mqv" min="20" max="200" id="i-mqv"></label>
+ <label>흐르는 속도 (느릴수록 저장 길이가 길어져요) <input type="range" data-k="mqv" min="20" max="200" id="i-mqv"></label>
  <small>오른쪽 작은 칸에는 「기본 정보」의 「출처 · 커미션 표기」가 들어가요. 내용이 길어지면 칸이 늘어나요. 비워두면 그 칸은 사라져요.</small>
 </div></details>
 <details><summary>저장 · 불러오기</summary><div>
@@ -119,10 +120,10 @@ small{color:#9a8083;line-height:1.5}
 let F='"Gowun Dodum",sans-serif';
 const $=s=>document.querySelector(s),W=900,cv=$('#cv'),cx=cv.getContext('2d');
 const M=40,G=20,GI=12,PX=M,PADX=20,PADY=18;
-const DEF=()=>({nick:'닉네임',desc:'계정 설명',accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626',emSize:90,credit:'© ',foot:true,fl:'Main tweet',mq:'자유롭게 문구를 적어주세요',mqv:60,font:'Gowun Dodum',tsize:17,round:28,colRatio:50,boxes:[{t:'ABOUT',b:'자유롭게 소개를 적어주세요.\n줄바꿈도 그대로 보여요.',half:false,h:170,wt:50},{t:'NG',b:'주의사항',half:true,h:120,wt:50},{t:'기타등등',b:'링크, 메모 등',half:true,h:120,wt:50}],header:null,hd:{z:1,ox:0,oy:0},emblem:null,tabs:['계정','특징','...'],photos:[],stk:[]});
+const DEF=()=>({nick:'닉네임',desc:'계정 설명',accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626',emSize:90,credit:'© ',foot:true,fl:'Main tweet',mq:'자유롭게 문구를 적어주세요',mqv:60,font:'Gowun Dodum',tsize:17,round:28,colRatio:50,boxes:[{t:'ABOUT',b:'자유롭게 소개를 적어주세요.\n줄바꿈도 그대로 보여요.',half:false,h:170,wt:50},{t:'NG',b:'주의사항',half:true,h:120,wt:50},{t:'기타등등',b:'링크, 메모 등',half:true,h:120,wt:50}],header:null,hd:{z:1,ox:0,oy:0},em:{z:1,ox:0,oy:0},emblem:null,tabs:['계정','특징','...'],photos:[],stk:[]});
 function mig(o){const n=Object.assign(DEF(),o);if(o.secs){n.text=o.secs.map(s=>[s.t,s.b].filter(Boolean).join('\n')).join('\n\n');delete n.secs}if(n.text!==undefined){if(!o.boxes)n.boxes=[{t:'',b:n.text,half:false,h:0,wt:50}];delete n.text}
  n.boxes=n.boxes.map(b=>Object.assign({t:'',b:'',half:false,h:0,wt:50},b));
- n.photos=n.photos.map(p=>typeof p=='string'?{src:p,z:1,ox:0,oy:0,h:240,cap:''}:p);n.hd=Object.assign({z:1,ox:0,oy:0},o.hd||{});if(!n.credit)n.credit='© ';return n}
+ n.photos=n.photos.map(p=>Object.assign({z:1,ox:0,oy:0,h:240,cap:'',half:false,wt:50},typeof p=='string'?{src:p}:p));n.hd=Object.assign({z:1,ox:0,oy:0},o.hd||{});n.em=Object.assign({z:1,ox:0,oy:0},o.em||{});if(!n.credit)n.credit='© ';return n}
 const FONTS=[['Gowun Dodum','고운돋움'],['Pretendard','프리텐다드'],['Gowun Batang','고운바탕'],['Noto Sans KR','노토 산스'],['Noto Serif KR','노토 세리프'],['Nanum Gothic','나눔고딕'],['Nanum Myeongjo','나눔명조'],['Nanum Pen Script','나눔손글씨 펜'],['Gaegu','개구'],['Gamja Flower','감자꽃'],['Poor Story','푸어스토리'],['Hi Melody','하이멜로디'],['Single Day','싱글데이'],['Jua','주아'],['Do Hyeon','도현'],['Yeon Sung','연성'],['Dongle','동글'],['Cute Font','귀여운 폰트']];
 $('#i-font').innerHTML=FONTS.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');
 const PRESETS=[['화이트 그레이',{accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626'}],['웜 그레이',{accent:'#d9d4cc',panel:'#f1eeea',pill:'#3b3733',bg:'#fbfaf8',ink:'#2d2a27'}],['차콜',{accent:'#4a4a4a',panel:'#242424',pill:'#6a6a6a',bg:'#161616',ink:'#ececec'}],['소프트 핑크',{accent:'#e4aeae',panel:'#f4e1e0',pill:'#e4aeae',bg:'#ffffff',ink:'#5a4548'}]];
@@ -204,7 +205,10 @@ function measure(){F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${
   let xx=PX;its.forEach((it,k)=>{const l=k==0,r=k==its.length-1;bx.push({i:it.i,x:xx,y:y2,w:it.w,h,row:ri,lines:it.lines,th:it.th,rad:[first&&l?R:sm,first&&r?R:sm,last&&r?R:sm,last&&l?R:sm]});xx+=it.w+GI});
   y2+=h+GI});
  const leftH=bx.length?y2-GI-top:0,rx=PX+lw+G;let yy=top;
- const pr=S.photos.map(p=>{const r={x:rx,y:yy,w:rw,h:p.h};yy+=p.h+GI;return r});
+ const pr=new Array(S.photos.length);
+ for(let i=0;i<S.photos.length;){const a=S.photos[i],b2=S.photos[i+1];
+  if(a.half&&b2&&b2.half){const h=Math.max(a.h,b2.h),wa=a.wt||50,wb=b2.wt||50,w1=Math.round((rw-GI)*wa/(wa+wb));pr[i]={x:rx,y:yy,w:w1,h};pr[i+1]={x:rx+w1+GI,y:yy,w:rw-GI-w1,h};yy+=h+GI;i+=2}
+  else{pr[i]={x:rx,y:yy,w:rw,h:a.h};yy+=a.h+GI;i++}}
  if(!pr.length){pr.push({x:rx,y:top,w:rw,h:240});yy=top+240+GI}
  const colH=Math.max(leftH,yy-GI-top,120);
  if(leftH&&leftH<colH)bx.forEach(b=>{if(b.row==rows.length-1)b.h+=colH-leftH});
@@ -217,6 +221,10 @@ function measure(){F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${
  return{tabs,top,bx,lh,tf,colH,pr,cl,ft,H:Math.round(top+colH+M+(ft?22+ft.rowH:0))}}
 const mqOn=()=>!!S.foot&&String(S.mq||'').trim().length>0;
 function mqW(){measure();mc.font=`15px ${F}`;LS(mc,.3);const w=mc.measureText(String(S.mq).trim()+'     •     ').width;LS(mc,0);return w}
+function stkT(T){if(!S.stk.some(s=>s.an!='none'))return T;
+ const ev=S.stk.some(s=>s.an=='flip'&&((s.sp||1)%2));if(!T)return ev?4000:2000;
+ for(let m=1,x=T;x<=12000;m++,x=T*m){if(x>=2000&&(!ev||Math.round(x/2000)%2==0))return x}
+ return Math.min(12000,T*Math.ceil(2000/T))}
 function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.floor(u),sin=Math.sin;let dy=0,rot=0,sx=1,sy=1,al=1,anc=0;
  if(s.an=='float'){dy=-12*A*sin(p);rot=.04*A*sin(p)}
  else if(s.an=='spin')rot=p;
@@ -225,7 +233,7 @@ function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.flo
  else if(s.an=='bounce'){anc=1;const q=(u*2)%1,K=Math.min(A,2.5);       // 뿅뿅 점프: 공중 → 착지(찌그러짐)
   if(q<.7){const e=sin(Math.PI*q/.7);dy=-34*A*e;sy=1+.1*K*e;sx=1-.06*K*e}
   else{const e=sin(Math.PI*(q-.7)/.3);sy=Math.max(.5,1-.2*K*e);sx=1+.14*K*e}}
- else if(s.an=='flip'){const c=Math.cos(p);sx=Math.abs(c)<.03?(c<0?-.03:.03):c}   // 키링처럼 세로축 회전
+ else if(s.an=='flip'){const c=Math.cos(p*.5);sx=Math.abs(c)<.03?(c<0?-.03:.03):c}   // 키링처럼 세로축 회전
  else if(s.an=='stick'){const K=Math.min(A,2.5);let sc=1;                          // 스티커 붙이기: 착! → 살짝 눌림 → 유지 → 떼어짐
   if(f<.16){const e=f/.16,k=e*e;sc=1+.7*K+(.9-1-.7*K)*k;al=Math.min(1,e*4);rot=(1-k)*.25*K}
   else if(f<.3){const e=(f-.16)/.14;sc=1-.1*Math.cos(e*Math.PI*1.5)*(1-e)}
@@ -243,7 +251,7 @@ function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  c.save();c.shadowColor='rgba(0,0,0,.14)';c.shadowBlur=22;c.shadowOffsetY=6;c.beginPath();c.arc(E.cx,E.cy,E.r+Math.max(6,E.r*.08),0,7);c.fillStyle='#fff';c.fill();c.restore();
  c.save();c.beginPath();c.arc(E.cx,E.cy,E.r,0,7);c.fillStyle=S.panel;c.fill();
  const ei=img(S.emblem,t);
- if(ei){c.clip();const k=Math.max(2*E.r/ei.naturalWidth,2*E.r/ei.naturalHeight),dw=ei.naturalWidth*k,dh=ei.naturalHeight*k;c.drawImage(ei,E.cx-dw/2,E.cy-dh/2,dw,dh)}
+ if(ei){c.clip();const k=Math.max(2*E.r/ei.naturalWidth,2*E.r/ei.naturalHeight)*S.em.z,dw=ei.naturalWidth*k,dh=ei.naturalHeight*k;c.drawImage(ei,E.cx-dw/2+S.em.ox*(dw-2*E.r)/2,E.cy-dh/2+S.em.oy*(dh-2*E.r)/2,dw,dh)}
  else{c.fillStyle=rgba(S.ink,.35);c.font=`16px ${F}`;LS(c,1.5);c.textAlign='center';c.fillText('인장',E.cx,E.cy+6);LS(c,0)}
  c.restore();
  // 닉네임 + 말풍선
@@ -272,7 +280,7 @@ function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  if(f.lab){const py=yc(FH);rr(c,PX,py,f.lw1,FH,FH/2);c.fillStyle=S.pill;c.fill();c.fillStyle='#fff';c.font=`15px ${F}`;LS(c,.3);c.textAlign='center';c.fillText(f.lab,PX+f.lw1/2+.15,py+FH/2+5);LS(c,0);c.textAlign='left'}
  if(f.mq&&f.mw>60){const py=yc(FH);rr(c,f.mx,py,f.mw,FH,FH/2);c.fillStyle=S.bg;c.fill();c.lineWidth=1.6;c.strokeStyle=S.pill;c.stroke();
   c.save();rr(c,f.mx+1,py+1,f.mw-2,FH-2,FH/2-1);c.clip();c.font=`15px ${F}`;LS(c,.3);c.fillStyle=S.ink;c.textAlign='left';
-  const unit=f.mq+'     •     ',uw=c.measureText(unit).width,v=S.mqv||60,off=MQ?(t/MQ.T*Math.max(1,Math.round(v*MQ.T/uw))*uw)%uw:(t*v)%uw;
+  const unit=f.mq+'     •     ',uw0=c.measureText(unit).width,v=S.mqv||60,uw=MQ?MQ.u:uw0,off=MQ?(t/MQ.T*MQ.k*uw)%uw:(t*v)%uw;
   for(let x=f.mx+22-off-uw;x<f.mx+f.mw;x+=uw)c.fillText(unit,x,py+FH/2+5);
   for(const[x0,a,b]of[[f.mx,1,0],[f.mx+f.mw-30,0,1]]){const g=c.createLinearGradient(x0,0,x0+30,0);g.addColorStop(0,rgba(S.bg,a));g.addColorStop(1,rgba(S.bg,b));c.fillStyle=g;c.fillRect(x0,py,30,FH)}
   LS(c,0);c.restore()}
@@ -297,8 +305,8 @@ async function rd(f,max,png){const b=await createImageBitmap(f),k=Math.min(1,max
 document.addEventListener('change',async e=>{const k=e.target.dataset.file;if(!k)return;
  for(const f of e.target.files){try{
   if(k=='header'){S.header=await rdm(f,1600,false);S.hd={z:1,ox:0,oy:0}}
-  else if(k=='emblem')S.emblem=await rdm(f,600,true);
-  else if(k=='photos'){S.photos.push({src:await rdm(f,1400,false),z:1,ox:0,oy:0,h:240,cap:''});selP=S.photos.length-1;sel=-1}
+  else if(k=='emblem'){S.emblem=await rdm(f,600,true);S.em={z:1,ox:0,oy:0}}
+  else if(k=='photos'){S.photos.push({src:await rdm(f,1400,false),z:1,ox:0,oy:0,h:240,cap:'',half:false,wt:50});selP=S.photos.length-1;sel=-1}
   else if(k=='stk'){const src=await rdm(f,800,true),i=new Image();i.src=src;await i.decode();S.stk.push({src,x:W/2+Math.random()*60-30,y:200+Math.random()*60,size:Math.min(160,i.naturalWidth),an:'float',sp:1,amp:1});sel=S.stk.length-1;selP=-1}
  }catch(err){status('이미지를 불러오지 못했어요: '+f.name)}}
  e.target.value='';ui();save()});
@@ -308,11 +316,12 @@ function ui(){
  for(const [id,k] of [['font','font'],['nick','nick'],['em','emSize'],['desc','desc'],['accent','accent'],['panel','panel'],['pill','pill'],['bg','bg'],['ink','ink'],['round','round'],['credit','credit'],['fl','fl'],['mq','mq'],['mqv','mqv'],['cr','colRatio'],['ts','tsize']])$('#i-'+id).value=S[k];
  $('#i-foot').checked=!!S.foot;
  $('#hdctl').innerHTML=S.header?[['확대','z',1,4,.05],['가로 위치','ox',-1,1,.02],['세로 위치','oy',-1,1,.02]].map(([l,f,mn,mx,st])=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${S.hd[f]} data-o=hd data-f=${f}></label>`).join(''):'';
+ $('#emctl').innerHTML=S.emblem?[['안쪽 확대','z',1,4,.05],['가로 위치','ox',-1,1,.02],['세로 위치','oy',-1,1,.02]].map(([l,f,mn,mx,st])=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${S.em[f]} data-o=em data-f=${f}></label>`).join('')+'<small>인장 위에서 드래그하면 위치, 마우스 휠로 확대·축소가 돼요.</small>':'';
  $('#boxes').innerHTML=S.boxes.map((b,i)=>`<div style="border:1.2px solid var(--p);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:6px"><div class=row><input type=text value="${esc(b.t)}" placeholder="제목 (비워도 돼요)" data-a=boxes data-i=${i} data-f=t aria-label="칸 제목"><button data-mvb=-1 data-i=${i} aria-label="위로">▲</button><button data-mvb=1 data-i=${i} aria-label="아래로">▼</button><button data-x=boxes data-i=${i} aria-label="삭제">✕</button></div><textarea data-a=boxes data-i=${i} data-f=b aria-label="칸 내용">${esc(b.b)}</textarea><label style="display:flex;gap:6px;align-items:center"><input type=checkbox data-a=boxes data-i=${i} data-f=half ${b.half?'checked':''}> 반칸 (옆 칸과 짝을 이뤄요)</label>${sl('boxes','최소 높이',i,'h',0,600,5,b.h)}${sl('boxes','너비 비율 (반칸일 때)',i,'wt',20,80,5,b.wt)}</div>`).join('');
  $('#tabs').innerHTML=S.tabs.map((t,i)=>`<div class=row><input type=text value="${esc(t)}" data-a=tabs data-i=${i} aria-label="버튼 ${i+1}"><button data-x=tabs data-i=${i} aria-label="삭제">✕</button></div>`).join('');
  $('#photos').innerHTML=S.photos.map((p,i)=>`<div class="th${i==selP?' on':''}" data-selp=${i} tabindex=0 role=button aria-label="사진 ${i+1} 선택"><img src="${p.src}" alt=""><button data-x=photos data-i=${i} aria-label="삭제">✕</button></div>`).join('');
  const p=S.photos[selP];
- $('#phctl').innerHTML=p?`<textarea placeholder="첫 줄: 페어명&#10;둘째 줄: 한 줄 소개" style="min-height:56px" data-a=photos data-i=${selP} data-f=cap aria-label="사진 문구">${esc(p.cap||'')}</textarea>`+sl('photos','확대',selP,'z',1,4,.05,p.z)+sl('photos','가로 위치',selP,'ox',-1,1,.02,p.ox)+sl('photos','세로 위치',selP,'oy',-1,1,.02,p.oy)+sl('photos','칸 높이',selP,'h',120,800,5,p.h)+`<div class=row><button data-mv=-1 data-i=${selP}>◀ 앞으로</button><button data-mv=1 data-i=${selP}>뒤로 ▶</button></div>`:'<small>사진을 선택하면 확대·위치·높이를 조절할 수 있어요. 사진을 계속 추가하면 이미지가 아래로 길어져요.</small>';
+ $('#phctl').innerHTML=p?`<textarea placeholder="첫 줄: 페어명&#10;둘째 줄: 한 줄 소개" style="min-height:56px" data-a=photos data-i=${selP} data-f=cap aria-label="사진 문구">${esc(p.cap||'')}</textarea>`+`<label style="display:flex;gap:6px;align-items:center"><input type=checkbox data-a=photos data-i=${selP} data-f=half ${p.half?'checked':''}> 반칸 (바로 옆 사진과 나란히)</label>`+(p.half?sl('photos','너비 비율 (옆 사진과 비교)',selP,'wt',20,80,5,p.wt||50):'')+sl('photos','확대',selP,'z',1,4,.05,p.z)+sl('photos','가로 위치',selP,'ox',-1,1,.02,p.ox)+sl('photos','세로 위치',selP,'oy',-1,1,.02,p.oy)+sl('photos','칸 높이',selP,'h',120,800,5,p.h)+`<div class=row><button data-mv=-1 data-i=${selP}>◀ 앞으로</button><button data-mv=1 data-i=${selP}>뒤로 ▶</button></div>`:'<small>사진을 선택하면 확대·위치·높이를 조절할 수 있어요. 「반칸」을 켠 사진이 연달아 있으면 옆으로 나란히 놓여요. 계속 추가하면 이미지가 아래로 길어져요.</small>';
  $('#stks').innerHTML=S.stk.map((s,i)=>`<div class="th${i==sel?' on':''}" data-sel=${i} tabindex=0 role=button aria-label="스티커 ${i+1} 선택"><img src="${s.src}" alt=""></div>`).join('');
  const s=S.stk[sel];
  $('#stctl').innerHTML=s?`<div style="display:flex;flex-direction:column;gap:8px"><label>크기 <input type=range min=30 max=600 value=${s.size} data-a=stk data-i=${sel} data-f=size></label>
@@ -341,16 +350,18 @@ const hitP=p=>{if(!S.photos.length)return -1;const R=measure().pr;for(let i=R.le
 cv.onpointerdown=e=>{const p=pt(e);
  for(let i=S.stk.length-1;i>=0;i--){const s=S.stk[i],im=img(s.src);if(!im)continue;const w=s.size,h=w*im.naturalHeight/im.naturalWidth;
   if(Math.abs(p.x-s.x)<w/2&&Math.abs(p.y-s.y)<h/2){sel=i;selP=-1;drag={k:'s',dx:s.x-p.x,dy:s.y-p.y};cv.setPointerCapture(e.pointerId);ui();return}}
+ {const E=emb();if(S.emblem&&Math.hypot(p.x-E.cx,p.y-E.cy)<=E.r){drag={k:'e',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);sel=-1;selP=-1;ui();return}}
  const i=hitP(p);if(i>=0){selP=i;sel=-1;drag={k:'p',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);ui();return}
  if(S.header&&p.y<hhOf(measure())){drag={k:'h',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);sel=-1;selP=-1;ui();return}
  sel=-1;selP=-1;ui()};
 cv.onpointermove=e=>{if(!drag)return;const p=pt(e);
  if(drag.k=='s'){const s=S.stk[sel];s.x=p.x+drag.dx;s.y=p.y+drag.dy}
- else{const hd=drag.k=='h',ph=hd?S.hd:S.photos[selP],im=img(hd?S.header:ph.src),r=hd?{w:W,h:hhOf(measure())}:measure().pr[selP];if(!im)return;const k=Math.max(r.w/im.naturalWidth,r.h/im.naturalHeight)*ph.z,rx=(im.naturalWidth*k-r.w)/2,ry=(im.naturalHeight*k-r.h)/2;
+ else{const tp=drag.k,ph=tp=='h'?S.hd:tp=='e'?S.em:S.photos[selP],im=img(tp=='h'?S.header:tp=='e'?S.emblem:ph.src),r=tp=='h'?{w:W,h:hhOf(measure())}:tp=='e'?{w:2*emb().r,h:2*emb().r}:measure().pr[selP];if(!im)return;const k=Math.max(r.w/im.naturalWidth,r.h/im.naturalHeight)*ph.z,rx=(im.naturalWidth*k-r.w)/2,ry=(im.naturalHeight*k-r.h)/2;
   if(rx>.5)ph.ox=clamp(ph.ox+(p.x-drag.x)/rx,-1,1);if(ry>.5)ph.oy=clamp(ph.oy+(p.y-drag.y)/ry,-1,1);drag.x=p.x;drag.y=p.y}};
-cv.onpointerup=()=>{if(drag){const k=drag.k;drag=null;if(k=='p'||k=='h')ui();save()}};
+cv.onpointerup=()=>{if(drag){const k=drag.k;drag=null;if(k=='p'||k=='h'||k=='e')ui();save()}};
 cv.addEventListener('wheel',e=>{const p=pt(e),i=hitP(p),f=e.deltaY<0?1.06:.94;
- if(i>=0){e.preventDefault();const ph=S.photos[i];ph.z=clamp(ph.z*f,1,4);selP=i;sel=-1;ui();save()}
+ if(S.emblem&&Math.hypot(p.x-emb().cx,p.y-emb().cy)<=emb().r){e.preventDefault();S.em.z=clamp(S.em.z*f,1,4);ui();save()}
+ else if(i>=0){e.preventDefault();const ph=S.photos[i];ph.z=clamp(ph.z*f,1,4);selP=i;sel=-1;ui();save()}
  else if(S.header&&p.y<hhOf(measure())){e.preventDefault();S.hd.z=clamp(S.hd.z*f,1,4);ui();save()}},{passive:false});
 // ---------- 저장
 let tm;function save(){clearTimeout(tm);tm=setTimeout(()=>{try{localStorage.setItem('maintweet',JSON.stringify(S))}catch(e){}},400)}
@@ -426,9 +437,10 @@ async function gifExport(layer){if(busy)return false;const stk=layer=='stk';
  await ready();const dmode=$('#dth').value,fit=$('#fit').checked,fps=+$('#fps').value,LIM=15*1048576*.97;
  const gd=[],addg=s=>{if(isGif(s)&&gifs[s]&&gifs[s].total)gd.push(gifs[s].total)};S.stk.forEach(s=>addg(s.src));if(!stk){addg(S.header);addg(S.emblem);S.photos.forEach(p=>addg(p.src))}
  let T=0;if(gd.length){const g=(a,b)=>b?g(b,a%b):a,l=gd.reduce((a,b)=>a/g(a,b)*b);T=l<=12000?l:Math.min(Math.max(...gd),12000)}
- if(S.stk.some(s=>s.an!='none')){if(!T)T=2000;else if(T<2000)T*=Math.ceil(2000/T)}
- if(!stk&&mqOn()){if(!T)T=clamp(Math.round(mqW()/(S.mqv||60)*1000),2000,12000);else if(T<2000)T*=Math.ceil(2000/T)}
- T=Math.min(T,12000);MQ=(!stk&&mqOn()&&T)?{T:T/1000}:null;let N,dly;const plan=f=>{N=T?Math.min(300,Math.max(2,Math.round(T*f/1000))):1;dly=Math.max(2,Math.round(100/f))};plan(fps);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;
+ T=stkT(T);
+ if(!stk&&mqOn()){const uw0=mqW(),v=S.mqv||60;if(!T)T=clamp(Math.round(uw0/v*1000),2000,12000);else{const T0=T;while(T*v/1000<uw0&&T+T0<=12000)T+=T0}}
+ T=Math.min(T,12000);MQ=null;if(!stk&&mqOn()&&T){const uw0=mqW(),v=S.mqv||60,k=Math.max(1,Math.floor(v*T/1000/uw0));MQ={T:T/1000,k,u:Math.max(uw0,v*T/1000/k),v}}
+ let N,dly;const plan=f=>{N=T?Math.min(300,Math.max(2,Math.round(T*f/1000))):1;dly=Math.max(2,Math.round(100/f))};plan(fps);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;
  const encode=async z=>{const zh=Math.round(z*measure().H/W),c=document.createElement('canvas');c.width=z;c.height=zh;const x=c.getContext('2d',{willReadFrequently:true});
   const render=i=>{x.setTransform(1,0,0,1,0,0);x.clearRect(0,0,z,zh);x.setTransform(z/W,0,0,z/W,0,0);draw(x,T/1000*i/N,false,stk?'stk':null);return x.getImageData(0,0,z,zh).data};
   status('색상 분석 중…');await tick();
@@ -465,7 +477,7 @@ async function gifExport(layer){if(busy)return false;const stk=layer=='stk';
   else{const nz=Math.max(400,Math.round(z*Math.sqrt(LIM/blob.size)*.95));if(nz>=z)break;z=nz;status(`아직 커서 가로 ${z}px로 줄여 다시 만드는 중…`)}
   await tick();blob=await encode(z)}
  dl(blob,stk?'maintweet_stickers.gif':'maintweet.gif');const mb=blob.size/1048576;
- status(`GIF 저장 완료 (${mb.toFixed(1)}MB, 가로 ${z}px${T&&fp!=fps?', '+fp+'fps':''})${mb>15?' · 아직 15MB를 넘어요. 프레임을 「가볍게」로 하거나 크기를 줄여 주세요.':''}`);ok=true;
+ status(`GIF 저장 완료 (${mb.toFixed(1)}MB, 가로 ${z}px${T&&fp!=fps?', '+fp+'fps':''})${MQ&&MQ.k*MQ.u/MQ.T>MQ.v*1.1?' · 글자 속도를 설정대로 하면 12초를 넘어서 조금 빠르게 저장됐어요.':''}${mb>15?' · 아직 15MB를 넘어요. 프레임을 「가볍게」로 하거나 크기를 줄여 주세요.':''}`);ok=true;
 }catch(err){console.error(err);status('GIF 저장에 실패했어요. 크기를 줄여 다시 시도해 주세요.')}STP=2;MQ=null;busy=false;return ok}
 // ---------- MP4 저장 (브라우저 WebCodecs로 H.264 인코딩 → MP4로 직접 묶기)
 const cat=a=>{let n=0;for(const x of a)n+=x.length;const o=new Uint8Array(n);let p=0;for(const x of a){o.set(x,p);p+=x.length}return o};
@@ -491,9 +503,9 @@ async function mp4Export(){if(busy)return;
   const fps=+$('#fps').value,rep=+$('#rep').value,z0=+$('#gz').value,zw=z0&~1,zh=Math.round(z0*measure().H/W)&~1;
   const gd=[],addg=s=>{if(isGif(s)&&gifs[s]&&gifs[s].total)gd.push(gifs[s].total)};S.stk.forEach(s=>addg(s.src));addg(S.header);addg(S.emblem);S.photos.forEach(p=>addg(p.src));
   let T=0;if(gd.length){const g=(a,b)=>b?g(b,a%b):a,l=gd.reduce((a,b)=>a/g(a,b)*b);T=l<=12000?l:Math.min(Math.max(...gd),12000)}
-  const anim=S.stk.some(s=>s.an!='none');if(anim){if(!T)T=2000;else if(T<2000)T*=Math.ceil(2000/T)}
-  if(mqOn()){if(!T)T=clamp(Math.round(mqW()/(S.mqv||60)*1000),2000,12000);else if(T<2000)T*=Math.ceil(2000/T)}
-  T=Math.min(T,12000);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;if(!T)T=3000;MQ=mqOn()?{T:T/1000}:null;
+  T=stkT(T);
+  if(mqOn()){const uw0=mqW(),v=S.mqv||60;if(!T)T=clamp(Math.round(uw0/v*1000),2000,12000);else{const T0=T;while(T*v/1000<uw0&&T+T0<=12000)T+=T0}}
+  T=Math.min(T,12000);STP=T?T/1000/Math.max(1,Math.round(T/2000)):2;if(!T)T=3000;MQ=null;if(mqOn()){const uw0=mqW(),v=S.mqv||60,k=Math.max(1,Math.floor(v*T/1000/uw0));MQ={T:T/1000,k,u:Math.max(uw0,v*T/1000/k),v}}
   const N=Math.max(2,Math.round(T*fps/1000));
   const cfg={codec:zw*zh>2097152?'avc1.640033':'avc1.640028',width:zw,height:zh,bitrate:clamp(Math.round(zw*zh*fps*.2),3e6,30e6),framerate:fps,avc:{format:'avc'},latencyMode:'quality'};
   let sup=null;try{sup=await VideoEncoder.isConfigSupported(cfg)}catch(e){}
@@ -508,7 +520,7 @@ async function mp4Export(){if(busy)return;
   const all=[];for(let r=0;r<rep;r++)all.push(...samples);
   const blob=mp4Mux(zw,zh,desc,all,fps);dl(blob,'maintweet.mp4');
   const okSz=zh>=zw?(zw<=1200&&zh<=1900):(zw<=1920&&zh<=1200);
-  status(`MP4 저장 완료 (${(blob.size/1048576).toFixed(1)}MB, ${zw}×${zh}, ${(T*rep/1000).toFixed(1)}초)${okSz?'':' · 트위터 영상 최대 크기(세로형 1200×1900, 가로형 1920×1200)를 넘어요. 가로 크기를 줄여 주세요.'}`);
+  status(`MP4 저장 완료 (${(blob.size/1048576).toFixed(1)}MB, ${zw}×${zh}, ${(T*rep/1000).toFixed(1)}초)${MQ&&MQ.k*MQ.u/MQ.T>MQ.v*1.1?' · 글자 속도가 설정보다 조금 빨라요(12초 제한).':''}${okSz?'':' · 트위터 영상 최대 크기(세로형 1200×1900, 가로형 1920×1200)를 넘어요. 가로 크기를 줄여 주세요.'}`);
  }catch(err){console.error(err);status('MP4 저장에 실패했어요. 가로 크기를 줄이거나 GIF로 저장해 주세요.')}STP=2;MQ=null;busy=false}
 $('#fmt').onchange=()=>{const m=$('#fmt').value=='mp4';$('#rep').style.display=m?'':'none';$('#dth').style.display=m?'none':'';$('#fit').closest('label').style.display=m?'none':'inline-flex'};
 $('#gif').onclick=()=>$('#fmt').value=='mp4'?mp4Export():gifExport(null);
