@@ -54,7 +54,7 @@ small{color:#9a8083;line-height:1.5}
   <select id="fps" style="width:auto" aria-label="움직임 부드럽기"><option value="30">30fps 영상 추천</option><option value="20" selected>20fps 부드럽게</option><option value="12">12fps 보통</option><option value="8">8fps 가볍게</option></select>
   <select id="dth" style="width:auto" aria-label="디더링"><option value="fs" selected>디더링: 촘촘하게</option><option value="bayer">디더링: 격자</option><option value="none">디더링 없음</option></select>
   <select id="rep" style="width:auto;display:none" aria-label="MP4 반복 횟수"><option value="1">MP4 반복 1회</option><option value="3">3회 반복</option><option value="5">5회 반복</option><option value="10">10회 반복</option></select>
-  <label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="fit" checked>15MB 이하로 자동 맞춤</label>
+  <div style="display:flex;flex-direction:column;gap:3px"><label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" id="fit" checked>15MB 이하로 자동 맞춤</label><label style="display:inline-flex;gap:4px;align-items:center"><input type="checkbox" data-k="lim" id="i-lim">트위터 GIF이미지 최대 세로길이 제한</label><small id="limInfo" role="status"></small></div>
   <span id="st" role="status"></span>
  </div>
  <small>스티커·사진은 캔버스에서 드래그할 수 있어요. 사진 위에서 마우스 휠을 굴리면 확대/축소돼요.</small>
@@ -109,12 +109,6 @@ small{color:#9a8083;line-height:1.5}
  <label>흐르는 속도 (느릴수록 저장 길이가 길어져요) <input type="range" data-k="mqv" min="20" max="200" id="i-mqv"></label>
  <small>오른쪽 작은 칸에는 「기본 정보」의 「출처 · 커미션 표기」가 들어가요. 내용이 길어지면 칸이 늘어나요. 비워두면 그 칸은 사라져요.</small>
 </div></details>
-<details><summary>트위터 세로 길이 제한</summary><div>
- <label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-k="lim" id="i-lim"> 세로 길이 제한 사용</label>
- <label>최대 세로 길이 (가로 대비 %) <input type="range" data-k="maxr" min="80" max="200" step="1" id="i-maxr"></label>
- <small id="limInfo" role="status"></small>
- <small>내용이 이 길이를 넘으면 전체를 자동으로 줄여서 맞춰요(양옆은 배경색 여백). 참고 값: 정사각형 = 100(기본), 4:5 = 125, 3:4 = 133, 2:3 = 150. 안드로이드 앱 게시물 화면의 GIF를 측정해 보니 세로가 가로보다 길면 정사각형 틀 안에 들어가서 양옆에 검은 띠가 생겼어요. 환경에 따라 다를 수 있으니, 검은 띠가 생기면 값을 낮춰 보세요.</small>
-</div></details>
 <details><summary>저장 · 불러오기</summary><div>
  <small>JSON으로 저장해서 깃허브에 <b>project.json</b> 이름으로 올리면, 페이지를 열 때 자동으로 불러와요. 이 브라우저에서는 작업 내용이 자동 저장됩니다.</small>
  <div class="row"><button id="sv">JSON 저장</button><label class="btn" style="text-align:center">JSON 불러오기<input type="file" accept=".json" id="ld"></label></div>
@@ -126,10 +120,10 @@ small{color:#9a8083;line-height:1.5}
 let F='"Gowun Dodum",sans-serif';
 const $=s=>document.querySelector(s),W=900,cv=$('#cv'),cx=cv.getContext('2d');
 const M=40,G=20,GI=12,PX=M,PADX=20,PADY=18;
-const DEF=()=>({nick:'닉네임',desc:'계정 설명',accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626',emSize:90,credit:'© ',foot:true,lim:true,maxr:100,fl:'Main tweet',mq:'자유롭게 문구를 적어주세요',mqv:60,font:'Gowun Dodum',tsize:17,round:28,colRatio:50,boxes:[{t:'ABOUT',b:'자유롭게 소개를 적어주세요.\n줄바꿈도 그대로 보여요.',half:false,h:170,wt:50},{t:'NG',b:'주의사항',half:true,h:120,wt:50},{t:'기타등등',b:'링크, 메모 등',half:true,h:120,wt:50}],header:null,hd:{z:1,ox:0,oy:0},em:{z:1,ox:0,oy:0},emblem:null,tabs:['계정','특징','...'],photos:[],stk:[]});
+const DEF=()=>({nick:'닉네임',desc:'계정 설명',accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626',emSize:90,credit:'© ',foot:true,lim:true,fl:'Main tweet',mq:'자유롭게 문구를 적어주세요',mqv:60,font:'Gowun Dodum',tsize:17,round:28,colRatio:50,boxes:[{t:'ABOUT',b:'자유롭게 소개를 적어주세요.\n줄바꿈도 그대로 보여요.',half:false,h:170,wt:50},{t:'NG',b:'주의사항',half:true,h:120,wt:50},{t:'기타등등',b:'링크, 메모 등',half:true,h:120,wt:50}],header:null,hd:{z:1,ox:0,oy:0},em:{z:1,ox:0,oy:0},emblem:null,tabs:['계정','특징','...'],photos:[],stk:[]});
 function mig(o){const n=Object.assign(DEF(),o);if(o.secs){n.text=o.secs.map(s=>[s.t,s.b].filter(Boolean).join('\n')).join('\n\n');delete n.secs}if(n.text!==undefined){if(!o.boxes)n.boxes=[{t:'',b:n.text,half:false,h:0,wt:50}];delete n.text}
  n.boxes=n.boxes.map(b=>Object.assign({t:'',b:'',half:false,h:0,wt:50},b));
- n.photos=n.photos.map(p=>Object.assign({z:1,ox:0,oy:0,h:240,cap:'',half:false,wt:50},typeof p=='string'?{src:p}:p));n.hd=Object.assign({z:1,ox:0,oy:0},o.hd||{});n.em=Object.assign({z:1,ox:0,oy:0},o.em||{});if(!n.credit)n.credit='© ';if(n.maxr===125)n.maxr=100;return n}
+ n.photos=n.photos.map(p=>Object.assign({z:1,ox:0,oy:0,h:240,cap:'',half:false,wt:50},typeof p=='string'?{src:p}:p));n.hd=Object.assign({z:1,ox:0,oy:0},o.hd||{});n.em=Object.assign({z:1,ox:0,oy:0},o.em||{});if(!n.credit)n.credit='© ';return n}
 const FONTS=[['Gowun Dodum','고운돋움'],['Pretendard','프리텐다드'],['Gowun Batang','고운바탕'],['Noto Sans KR','노토 산스'],['Noto Serif KR','노토 세리프'],['Nanum Gothic','나눔고딕'],['Nanum Myeongjo','나눔명조'],['Nanum Pen Script','나눔손글씨 펜'],['Gaegu','개구'],['Gamja Flower','감자꽃'],['Poor Story','푸어스토리'],['Hi Melody','하이멜로디'],['Single Day','싱글데이'],['Jua','주아'],['Do Hyeon','도현'],['Yeon Sung','연성'],['Dongle','동글'],['Cute Font','귀여운 폰트']];
 $('#i-font').innerHTML=FONTS.map(f=>`<option value="${f[0]}">${f[1]}</option>`).join('');
 const PRESETS=[['화이트 그레이',{accent:'#d6d6d6',panel:'#efefef',pill:'#2b2b2b',bg:'#ffffff',ink:'#262626'}],['웜 그레이',{accent:'#d9d4cc',panel:'#f1eeea',pill:'#3b3733',bg:'#fbfaf8',ink:'#2d2a27'}],['차콜',{accent:'#4a4a4a',panel:'#242424',pill:'#6a6a6a',bg:'#161616',ink:'#ececec'}],['소프트 핑크',{accent:'#e4aeae',panel:'#f4e1e0',pill:'#e4aeae',bg:'#ffffff',ink:'#5a4548'}]];
@@ -199,10 +193,10 @@ function cover(c,im,x,y,w,h,r,p){p=p||{z:1,ox:0,oy:0};c.save();rr(c,x,y,w,h,r);c
 const NS=30,TH=34,FH=38,mc=document.createElement('canvas').getContext('2d');
 const LS=(c,v)=>{if('letterSpacing' in c)c.letterSpacing=v+'px'};
 const emb=()=>{const r=S.emSize;return{r,cx:M+r+24,cy:270-r,nx:M+24+2*r+26}};
-function measure(){F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${F}`;LS(c,.3);let x=E.nx,y=236;const tabs=[];
- for(const t of S.tabs){const w=Math.ceil(c.measureText(t).width)+40;if(x+w>W-M&&x>E.nx){x=E.nx;y+=TH+10}tabs.push({x,y,w,t});x+=w+8}
+function layoutAt(VW,extra){extra=extra||0;F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${F}`;LS(c,.3);let x=E.nx,y=236;const tabs=[];
+ for(const t of S.tabs){const w=Math.ceil(c.measureText(t).width)+40;if(x+w>VW-M&&x>E.nx){x=E.nx;y+=TH+10}tabs.push({x,y,w,t});x+=w+8}
  LS(c,0);
- const top=Math.max(300,y+TH+38),tw=W-2*M-G,lw=Math.round(tw*S.colRatio/100),rw=tw-lw,R=S.round,sm=10,tf=Math.max(11,Math.round(S.tsize*.78)),lh=S.tsize*1.7;
+ const top=Math.max(300,y+TH+38),tw=VW-2*M-G,lw=Math.round(tw*S.colRatio/100),rw=tw-lw,R=S.round,sm=10,tf=Math.max(11,Math.round(S.tsize*.78)),lh=S.tsize*1.7;
  const rows=[];for(let i=0;i<S.boxes.length;){if(S.boxes[i].half&&S.boxes[i+1]&&S.boxes[i+1].half){rows.push([i,i+1]);i+=2}else{rows.push([i]);i++}}
  const bx=[];let y2=top;
  rows.forEach((row,ri)=>{const first=ri==0,last=ri==rows.length-1;let ws=[lw];
@@ -216,16 +210,26 @@ function measure(){F=`"${S.font}",sans-serif`;const c=mc,E=emb();c.font=`14px ${
   if(a.half&&b2&&b2.half){const h=Math.max(a.h,b2.h),wa=a.wt||50,wb=b2.wt||50,w1=Math.round((rw-GI)*wa/(wa+wb));pr[i]={x:rx,y:yy,w:w1,h};pr[i+1]={x:rx+w1+GI,y:yy,w:rw-GI-w1,h};yy+=h+GI;i+=2}
   else{pr[i]={x:rx,y:yy,w:rw,h:a.h};yy+=a.h+GI;i++}}
  if(!pr.length){pr.push({x:rx,y:top,w:rw,h:240});yy=top+240+GI}
- const colH=Math.max(leftH,yy-GI-top,120);
+ const colH=Math.max(leftH,yy-GI-top,120)+extra;
  if(leftH&&leftH<colH)bx.forEach(b=>{if(b.row==rows.length-1)b.h+=colH-leftH});
  const cl=String(S.credit||'').split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3);if(!cl.join('').replace(/[©\s]/g,''))cl.length=0;
  let ft=null;const lab=String(S.fl||'').trim(),mq=String(S.mq||'').trim();
  if(S.foot&&(lab||mq||cl.length)){c.font=`15px ${F}`;LS(c,.3);const lw1=lab?Math.ceil(c.measureText(lab).width)+40:0;
   c.font=`13px ${F}`;LS(c,.2);let cw=0,cLines=[];if(cl.length){cLines=cl.flatMap(l=>wrap(c,l,208));cw=Math.min(240,Math.ceil(Math.max(...cLines.map(l=>c.measureText(l).width)))+32)}LS(c,0);
-  const ch=cl.length?Math.max(FH,cLines.length*18+20):0,rowH=Math.max(FH,ch),x1=W-M,mx=PX+(lw1?lw1+10:0);
+  const ch=cl.length?Math.max(FH,cLines.length*18+20):0,rowH=Math.max(FH,ch),x1=VW-M,mx=PX+(lw1?lw1+10:0);
   ft={y:top+colH+22,rowH,lw1,lab,mq,mx,mw:x1-(cw?cw+10:0)-mx,cx:x1-cw,cw,ch,cLines}}
- const Hn=Math.round(top+colH+M+(ft?22+ft.rowH:0)),Hmax=S.lim?Math.round(W*(S.maxr||125)/100):0,sc=Hmax&&Hn>Hmax?Hmax/Hn:1;
- return{tabs,top,bx,lh,tf,colH,pr,cl,ft,Hn,sc,H:sc<1?Hmax:Hn}}
+ const Hn=Math.round(top+colH+M+(ft?22+ft.rowH:0));
+ return{tabs,top,bx,lh,tf,colH,pr,cl,ft,Hn,H:Hn,vw:VW,sc:1,kx:1,ky:1}}
+// 트위터 GIF 최대 세로길이 제한: 내용이 1:1보다 길어지면 가로를 넓힌 가상 캔버스로 다시 배치해서 정사각형에 맞춰요 (양옆 여백 없음)
+let _ck='',_cl=null,fontTick=0;if(document.fonts&&document.fonts.addEventListener)document.fonts.addEventListener('loadingdone',()=>{fontTick++});
+function measure(){
+ const k=JSON.stringify([fontTick,S.font,S.boxes,S.photos.map(p=>[p.h,p.half,p.wt]),S.tabs,S.tsize,S.round,S.colRatio,S.emSize,S.credit,S.fl,S.mq,S.foot,S.lim]);
+ if(k===_ck&&_cl)return _cl;
+ let L=layoutAt(W);const Hn0=L.Hn;
+ if(S.lim&&Hn0>W){let lo=W,hi=W*2,Lh=layoutAt(hi);while(Lh.Hn>hi&&hi<W*16){lo=hi;hi*=2;Lh=layoutAt(hi)}
+  for(let i=0;i<14&&hi-lo>1;i++){const mid=(lo+hi)>>1,Lm=layoutAt(mid);if(Lm.Hn<=mid){hi=mid;Lh=Lm}else lo=mid}
+  L=layoutAt(hi,hi-Lh.Hn);L.vw=hi;L.sc=W/hi;L.kx=hi/W;L.ky=hi/Hn0;L.H=W}
+ _ck=k;_cl=L;return L}
 const mqOn=()=>!!S.foot&&String(S.mq||'').trim().length>0;
 function mqW(){measure();mc.font=`15px ${F}`;LS(mc,.3);const w=mc.measureText(String(S.mq).trim()+'     •     ').width;LS(mc,0);return w}
 function stkT(T){if(!S.stk.some(s=>s.an!='none'))return T;
@@ -250,11 +254,11 @@ function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.flo
 function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  c.save();c.textBaseline='alphabetic';c.textAlign='left';if(mode=='stk')c.clearRect(0,0,W,H);
  if(mode!='stk'){c.fillStyle=S.bg;c.fillRect(0,0,W,H);
- const sc=L.sc,ex=sc<1?(W/sc-W)/2:0;if(sc<1){c.translate(W*(1-sc)/2,0);c.scale(sc,sc)}
+ const sc=L.sc,VW=L.vw;if(sc<1)c.scale(sc,sc)
  const hh=hhOf(L),hi=img(S.header,t),g=c.createLinearGradient(0,0,0,hh);
- if(hi){cover(c,hi,-ex,0,W+2*ex,hh,0,S.hd);[[0,0],[.5,.2],[.8,.7],[1,1]].forEach(([o,a])=>g.addColorStop(o,rgba(S.bg,a)))}
+ if(hi){cover(c,hi,0,0,VW,hh,0,S.hd);[[0,0],[.5,.2],[.8,.7],[1,1]].forEach(([o,a])=>g.addColorStop(o,rgba(S.bg,a)))}
  else[[0,1],[.5,.6],[.8,.2],[1,0]].forEach(([o,a])=>g.addColorStop(o,rgba(S.accent,a)));
- c.fillStyle=g;c.fillRect(-ex,0,W+2*ex,hh);
+ c.fillStyle=g;c.fillRect(0,0,VW,hh+2);
  // 인장 + 하얀 외곽선
  c.save();c.shadowColor='rgba(0,0,0,.14)';c.shadowBlur=22;c.shadowOffsetY=6;c.beginPath();c.arc(E.cx,E.cy,E.r+Math.max(6,E.r*.08),0,7);c.fillStyle='#fff';c.fill();c.restore();
  c.save();c.beginPath();c.arc(E.cx,E.cy,E.r,0,7);c.fillStyle=S.panel;c.fill();
@@ -264,8 +268,8 @@ function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  c.restore();
  // 닉네임 + 말풍선
  const nby=216;c.textAlign='left';c.fillStyle=S.ink;c.font=`bold ${NS}px ${F}`;LS(c,-.4);const nw=c.measureText(S.nick).width;c.fillText(S.nick,E.nx,nby);LS(c,0);
- if(S.desc.trim()){c.font=`14px ${F}`;LS(c,.2);const bx=Math.min(E.nx+nw+24,W-M-140),dl=wrap(c,S.desc,W-M-bx-32).slice(0,3),
-  mw=Math.max(...dl.map(l=>c.measureText(l).width)),cw=Math.min(W-M-bx,mw+32),ch=dl.length*21+16,y0=nby+6-ch,ty=Math.min(y0+ch/2,y0+ch-18);
+ if(S.desc.trim()){c.font=`14px ${F}`;LS(c,.2);const bx=Math.min(E.nx+nw+24,VW-M-140),dl=wrap(c,S.desc,VW-M-bx-32).slice(0,3),
+  mw=Math.max(...dl.map(l=>c.measureText(l).width)),cw=Math.min(VW-M-bx,mw+32),ch=dl.length*21+16,y0=nby+6-ch,ty=Math.min(y0+ch/2,y0+ch-18);
   c.fillStyle=S.panel;rr(c,bx,y0,cw,ch,Math.min(18,ch/2));c.fill();
   c.beginPath();c.moveTo(bx+3,ty-6);c.lineTo(bx-9,ty+2);c.lineTo(bx+3,ty+8);c.closePath();c.fill();
   c.fillStyle=S.ink;dl.forEach((l,i)=>c.fillText(l,bx+16,y0+23+i*21));LS(c,0)}
@@ -297,7 +301,7 @@ function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  }
  // 스티커
  if(mode!='bg')S.stk.forEach((s,i)=>{const im=img(s.src,t);if(!im)return;const a=anim(s,t),w=s.size,h=w*im.naturalHeight/im.naturalWidth;
-  c.save();c.translate(s.x,s.y+a.dy);c.rotate(a.rot);c.globalAlpha=a.al;if(a.anc){c.translate(0,h/2);c.scale(a.sx,a.sy);c.translate(0,-h/2)}else c.scale(a.sx,a.sy);c.drawImage(im,-w/2,-h/2,w,h);c.globalAlpha=1;
+  c.save();c.translate(s.x*L.kx,s.y*L.ky+a.dy);c.rotate(a.rot);c.globalAlpha=a.al;if(a.anc){c.translate(0,h/2);c.scale(a.sx,a.sy);c.translate(0,-h/2)}else c.scale(a.sx,a.sy);c.drawImage(im,-w/2,-h/2,w,h);c.globalAlpha=1;
   if(ui&&i==sel){c.setLineDash([6,4]);c.strokeStyle='#666';c.lineWidth=2;c.strokeRect(-w/2,-h/2,w,h)}c.restore()});
  c.restore()}
 const allTxt=()=>S.nick+S.desc+S.tabs.join('')+S.boxes.map(b=>b.t+b.b).join('')+'인장페어사진0123456789';
@@ -308,7 +312,7 @@ $('#ff').onchange=async e=>{const f=e.target.files[0];if(!f)return;const name=f.
  try{await addFont(name,await f.arrayBuffer());S.font=name;ui();save();status(`글꼴 '${name}'을(를) 추가했어요`)}catch(x){status('글꼴 파일을 읽지 못했어요 (ttf, otf, woff, woff2만 가능해요)')}e.target.value=''};
 let limTxt='';
 function loop(){ensureFont();const L=measure(),H=L.H;if(cv.height!=H)cv.height=H;
- const lt=S.lim?(L.sc<1?`내용이 길어서 ${Math.round(L.Hn/W*100)}% → 제한 ${S.maxr}%에 맞춰 ${Math.round(L.sc*100)}%로 줄여 맞추는 중이에요`:`현재 세로 길이 ${Math.round(L.Hn/W*100)}% (제한 이내)`):'제한 없음';if(lt!==limTxt){limTxt=lt;const e=$('#limInfo');if(e)e.textContent=lt}
+ const lt=S.lim&&L.sc<1?`내용이 길어서 1:1에 맞춰 전체를 ${Math.round(L.sc*100)}% 크기로 줄여 배치했어요`:'';if(lt!==limTxt){limTxt=lt;const e=$('#limInfo');if(e)e.textContent=lt}
 draw(cx,playing?performance.now()/1000:0,true);requestAnimationFrame(loop)}
 // ---------- files
 async function rdm(f,max,png){if(f.type=='image/gif'){const src=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(f)});if(src.length>8e6)status('GIF 용량이 커서 자동 저장이 안 될 수 있어요. JSON으로 따로 저장해 주세요.');return src}return rd(f,max,png)}
@@ -324,7 +328,7 @@ document.addEventListener('change',async e=>{const k=e.target.dataset.file;if(!k
 // ---------- UI
 const sl=(a,l,i,f,mn,mx,st,v)=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${v} data-a=${a} data-i=${i} data-f=${f}></label>`;
 function ui(){
- for(const [id,k] of [['font','font'],['nick','nick'],['em','emSize'],['desc','desc'],['accent','accent'],['panel','panel'],['pill','pill'],['bg','bg'],['ink','ink'],['round','round'],['credit','credit'],['maxr','maxr'],['fl','fl'],['mq','mq'],['mqv','mqv'],['cr','colRatio'],['ts','tsize']])$('#i-'+id).value=S[k];
+ for(const [id,k] of [['font','font'],['nick','nick'],['em','emSize'],['desc','desc'],['accent','accent'],['panel','panel'],['pill','pill'],['bg','bg'],['ink','ink'],['round','round'],['credit','credit'],['fl','fl'],['mq','mq'],['mqv','mqv'],['cr','colRatio'],['ts','tsize']])$('#i-'+id).value=S[k];
  $('#i-foot').checked=!!S.foot;$('#i-lim').checked=!!S.lim;
  $('#hdctl').innerHTML=S.header?[['확대','z',1,4,.05],['가로 위치','ox',-1,1,.02],['세로 위치','oy',-1,1,.02]].map(([l,f,mn,mx,st])=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${S.hd[f]} data-o=hd data-f=${f}></label>`).join(''):'';
  $('#emctl').innerHTML=S.emblem?[['안쪽 확대','z',1,4,.05],['가로 위치','ox',-1,1,.02],['세로 위치','oy',-1,1,.02]].map(([l,f,mn,mx,st])=>`<label>${l}<input type=range min=${mn} max=${mx} step=${st} value=${S.em[f]} data-o=em data-f=${f}></label>`).join('')+'<small>인장 위에서 드래그하면 위치, 마우스 휠로 확대·축소가 돼요.</small>':'';
@@ -356,18 +360,18 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x],[data-a
  else if(d.selp!=null){selP=+d.selp;sel=-1;ui()}});
 document.addEventListener('keydown',e=>{if(e.key!='Enter')return;const d=e.target.dataset;if(d.sel!=null){sel=+d.sel;selP=-1;ui()}else if(d.selp!=null){selP=+d.selp;sel=-1;ui()}});
 // ---------- 캔버스 드래그 / 휠
-const pt=e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*cv.height/r.height,sc=measure().sc;return sc<1?{x:(x-W*(1-sc)/2)/sc,y:y/sc}:{x,y}};
+const pt=e=>{const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*cv.height/r.height,sc=measure().sc;return sc<1?{x:x/sc,y:y/sc}:{x,y}};
 const hitP=p=>{if(!S.photos.length)return -1;const R=measure().pr;for(let i=R.length-1;i>=0;i--){const r=R[i];if(p.x>=r.x&&p.x<=r.x+r.w&&p.y>=r.y&&p.y<=r.y+r.h)return i}return -1};
 cv.onpointerdown=e=>{const p=pt(e);
  for(let i=S.stk.length-1;i>=0;i--){const s=S.stk[i],im=img(s.src);if(!im)continue;const w=s.size,h=w*im.naturalHeight/im.naturalWidth;
-  if(Math.abs(p.x-s.x)<w/2&&Math.abs(p.y-s.y)<h/2){sel=i;selP=-1;drag={k:'s',dx:s.x-p.x,dy:s.y-p.y};cv.setPointerCapture(e.pointerId);ui();return}}
+  const Lm=measure(),sx=s.x*Lm.kx,sy=s.y*Lm.ky;if(Math.abs(p.x-sx)<w/2&&Math.abs(p.y-sy)<h/2){sel=i;selP=-1;drag={k:'s',dx:sx-p.x,dy:sy-p.y};cv.setPointerCapture(e.pointerId);ui();return}}
  {const E=emb();if(S.emblem&&Math.hypot(p.x-E.cx,p.y-E.cy)<=E.r){drag={k:'e',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);sel=-1;selP=-1;ui();return}}
  const i=hitP(p);if(i>=0){selP=i;sel=-1;drag={k:'p',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);ui();return}
  if(S.header&&p.y<hhOf(measure())){drag={k:'h',x:p.x,y:p.y};cv.setPointerCapture(e.pointerId);sel=-1;selP=-1;ui();return}
  sel=-1;selP=-1;ui()};
 cv.onpointermove=e=>{if(!drag)return;const p=pt(e);
- if(drag.k=='s'){const s=S.stk[sel];s.x=p.x+drag.dx;s.y=p.y+drag.dy}
- else{const tp=drag.k,ph=tp=='h'?S.hd:tp=='e'?S.em:S.photos[selP],im=img(tp=='h'?S.header:tp=='e'?S.emblem:ph.src),r=tp=='h'?{w:W,h:hhOf(measure())}:tp=='e'?{w:2*emb().r,h:2*emb().r}:measure().pr[selP];if(!im)return;const k=Math.max(r.w/im.naturalWidth,r.h/im.naturalHeight)*ph.z,rx=(im.naturalWidth*k-r.w)/2,ry=(im.naturalHeight*k-r.h)/2;
+ if(drag.k=='s'){const s=S.stk[sel],Lm=measure();s.x=(p.x+drag.dx)/Lm.kx;s.y=(p.y+drag.dy)/Lm.ky}
+ else{const tp=drag.k,ph=tp=='h'?S.hd:tp=='e'?S.em:S.photos[selP],im=img(tp=='h'?S.header:tp=='e'?S.emblem:ph.src),r=tp=='h'?{w:measure().vw,h:hhOf(measure())}:tp=='e'?{w:2*emb().r,h:2*emb().r}:measure().pr[selP];if(!im)return;const k=Math.max(r.w/im.naturalWidth,r.h/im.naturalHeight)*ph.z,rx=(im.naturalWidth*k-r.w)/2,ry=(im.naturalHeight*k-r.h)/2;
   if(rx>.5)ph.ox=clamp(ph.ox+(p.x-drag.x)/rx,-1,1);if(ry>.5)ph.oy=clamp(ph.oy+(p.y-drag.y)/ry,-1,1);drag.x=p.x;drag.y=p.y}};
 cv.onpointerup=()=>{if(drag){const k=drag.k;drag=null;if(k=='p'||k=='h'||k=='e')ui();save()}};
 cv.addEventListener('wheel',e=>{const p=pt(e),i=hitP(p),f=e.deltaY<0?1.06:.94;
