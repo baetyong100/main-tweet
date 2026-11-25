@@ -233,10 +233,10 @@ function measure(){
 const mqOn=()=>!!S.foot&&String(S.mq||'').trim().length>0;
 function mqW(){measure();mc.font=`15px ${F}`;LS(mc,.3);const w=mc.measureText(String(S.mq).trim()+'     •     ').width;LS(mc,0);return w}
 function stkT(T){if(!S.stk.some(s=>s.an!='none'))return T;
- const ev=S.stk.some(s=>s.an=='flip'&&((s.sp||1)%2));if(!T)return ev?4000:2000;
+ const ev=S.stk.some(s=>(s.an=='flip'||s.an=='roam')&&((s.sp||1)%2));if(!T)return ev?4000:2000;
  for(let m=1,x=T;x<=12000;m++,x=T*m){if(x>=2000&&(!ev||Math.round(x/2000)%2==0))return x}
  return Math.min(12000,T*Math.ceil(2000/T))}
-function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.floor(u),sin=Math.sin;let dy=0,rot=0,sx=1,sy=1,al=1,anc=0;
+function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.floor(u),sin=Math.sin;let dy=0,rot=0,sx=1,sy=1,al=1,anc=0,fx=0,fy=0,roam=0;
  if(s.an=='float'){dy=-12*A*sin(p);rot=.04*A*sin(p)}
  else if(s.an=='spin')rot=p;
  else if(s.an=='sway')rot=.3*A*sin(p);
@@ -244,13 +244,18 @@ function anim(s,t){const u=t/STP*(s.sp||1),p=Math.PI*2*u,A=s.amp||1,f=u-Math.flo
  else if(s.an=='bounce'){anc=1;const q=(u*2)%1,K=Math.min(A,2.5);       // 뿅뿅 점프: 공중 → 착지(찌그러짐)
   if(q<.7){const e=sin(Math.PI*q/.7);dy=-34*A*e;sy=1+.1*K*e;sx=1-.06*K*e}
   else{const e=sin(Math.PI*(q-.7)/.3);sy=Math.max(.5,1-.2*K*e);sx=1+.14*K*e}}
+ else if(s.an=='roam'){const u2=u*.5,r=i=>{const x=Math.sin((s.seed==null?.37:s.seed)*12.9898+i*78.233)*43758.5453;return x-Math.floor(x)},T2=Math.PI*2,
+   k1=1+Math.floor(r(1)*3),k2=2+Math.floor(r(2)*3),cov=Math.min(1,A);                       // 날아다니기: 정수 배 주파수라 반복이 끊기지 않아요
+  fx=.5+.5*cov*(.62*sin(T2*k1*u2+r(3)*T2)+.38*sin(T2*(k1+2)*u2+r(4)*T2));
+  fy=.5+.5*cov*(.62*sin(T2*(k2===k1?k2+1:k2)*u2+r(5)*T2)+.38*sin(T2*(k2+1)*u2+r(6)*T2));
+  rot=.45*Math.min(A,2)*sin(T2*(k1+1)*u2+r(7)*T2);roam=1}
  else if(s.an=='flip'){const c=Math.cos(p*.5);sx=Math.abs(c)<.03?(c<0?-.03:.03):c}   // 키링처럼 세로축 회전
  else if(s.an=='stick'){const K=Math.min(A,2.5);let sc=1;                          // 스티커 붙이기: 착! → 살짝 눌림 → 유지 → 떼어짐
   if(f<.16){const e=f/.16,k=e*e;sc=1+.7*K+(.9-1-.7*K)*k;al=Math.min(1,e*4);rot=(1-k)*.25*K}
   else if(f<.3){const e=(f-.16)/.14;sc=1-.1*Math.cos(e*Math.PI*1.5)*(1-e)}
   else if(f>=.86){const e=(f-.86)/.14;al=1-e;sc=1+.12*e;rot=-.08*e*K;dy=-8*e}
   sx=sy=sc}
- return{dy,rot,sx,sy,al,anc}}
+ return{dy,rot,sx,sy,al,anc,fx,fy,roam}}
 function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  c.save();c.textBaseline='alphabetic';c.textAlign='left';if(mode=='stk')c.clearRect(0,0,W,H);
  if(mode!='stk'){c.fillStyle=S.bg;c.fillRect(0,0,W,H);
@@ -301,7 +306,8 @@ function draw(c,t,ui,mode){const L=measure(),H=L.H,E=emb();
  }
  // 스티커
  if(mode!='bg')S.stk.forEach((s,i)=>{const im=img(s.src,t);if(!im)return;const a=anim(s,t),w=s.size,h=w*im.naturalHeight/im.naturalWidth;
-  c.save();c.translate(s.x*L.kx,s.y*L.ky+a.dy);c.rotate(a.rot);c.globalAlpha=a.al;if(a.anc){c.translate(0,h/2);c.scale(a.sx,a.sy);c.translate(0,-h/2)}else c.scale(a.sx,a.sy);c.drawImage(im,-w/2,-h/2,w,h);c.globalAlpha=1;
+  let px=s.x*L.kx,py=s.y*L.ky+a.dy;if(a.roam){const CH=L.sc<1?L.vw:L.H;px=w/2+a.fx*(L.vw-w);py=h/2+a.fy*(CH-h)}
+  c.save();c.translate(px,py);c.rotate(a.rot);c.globalAlpha=a.al;if(a.anc){c.translate(0,h/2);c.scale(a.sx,a.sy);c.translate(0,-h/2)}else c.scale(a.sx,a.sy);c.drawImage(im,-w/2,-h/2,w,h);c.globalAlpha=1;
   if(ui&&i==sel){c.setLineDash([6,4]);c.strokeStyle='#666';c.lineWidth=2;c.strokeRect(-w/2,-h/2,w,h)}c.restore()});
  c.restore()}
 const allTxt=()=>S.nick+S.desc+S.tabs.join('')+S.boxes.map(b=>b.t+b.b).join('')+'인장페어사진0123456789';
@@ -322,7 +328,7 @@ document.addEventListener('change',async e=>{const k=e.target.dataset.file;if(!k
   if(k=='header'){S.header=await rdm(f,1600,false);S.hd={z:1,ox:0,oy:0}}
   else if(k=='emblem'){S.emblem=await rdm(f,600,true);S.em={z:1,ox:0,oy:0}}
   else if(k=='photos'){S.photos.push({src:await rdm(f,1400,false),z:1,ox:0,oy:0,h:240,cap:'',half:false,wt:50});selP=S.photos.length-1;sel=-1}
-  else if(k=='stk'){const src=await rdm(f,800,true),i=new Image();i.src=src;await i.decode();S.stk.push({src,x:W/2+Math.random()*60-30,y:200+Math.random()*60,size:Math.min(160,i.naturalWidth),an:'float',sp:1,amp:1});sel=S.stk.length-1;selP=-1}
+  else if(k=='stk'){const src=await rdm(f,800,true),i=new Image();i.src=src;await i.decode();S.stk.push({src,x:W/2+Math.random()*60-30,y:200+Math.random()*60,size:Math.min(160,i.naturalWidth),an:'float',sp:1,amp:1,seed:Math.random()});sel=S.stk.length-1;selP=-1}
  }catch(err){status('이미지를 불러오지 못했어요: '+f.name)}}
  e.target.value='';ui();save()});
 // ---------- UI
@@ -340,9 +346,9 @@ function ui(){
  $('#stks').innerHTML=S.stk.map((s,i)=>`<div class="th${i==sel?' on':''}" data-sel=${i} tabindex=0 role=button aria-label="스티커 ${i+1} 선택"><img src="${s.src}" alt=""></div>`).join('');
  const s=S.stk[sel];
  $('#stctl').innerHTML=s?`<div style="display:flex;flex-direction:column;gap:8px"><label>크기 <input type=range min=30 max=600 value=${s.size} data-a=stk data-i=${sel} data-f=size></label>
- <select data-a=stk data-i=${sel} data-f=an aria-label="애니메이션">${[['none','움직임 없음'],['float','둥실둥실'],['spin','뱅글뱅글'],['sway','흔들흔들'],['pulse','콩닥콩닥'],['bounce','뿅뿅 점프'],['stick','스티커 붙이기'],['flip','키링 회전 (세로축)']].map(o=>`<option value=${o[0]}${s.an==o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
+ <select data-a=stk data-i=${sel} data-f=an aria-label="애니메이션">${[['none','움직임 없음'],['float','둥실둥실'],['spin','뱅글뱅글'],['sway','흔들흔들'],['pulse','콩닥콩닥'],['bounce','뿅뿅 점프'],['stick','스티커 붙이기'],['flip','키링 회전 (세로축)'],['roam','화면 날아다니기']].map(o=>`<option value=${o[0]}${s.an==o[0]?' selected':''}>${o[1]}</option>`).join('')}</select>
  <select data-a=stk data-i=${sel} data-f=sp data-n=1 aria-label="속도">${[1,2,3].map(v=>`<option value=${v}${s.sp==v?' selected':''}>${['보통','2배 빠르게','3배 빠르게'][v-1]}</option>`).join('')}</select>
- <label>움직임 크기 (점프 높이·붙이는 세기 등) <input type=range min=.2 max=4 step=.1 value=${s.amp||1} data-a=stk data-i=${sel} data-f=amp></label>
+ <label>움직임 크기 (점프 높이·날아다니는 범위 등) <input type=range min=.2 max=4 step=.1 value=${s.amp||1} data-a=stk data-i=${sel} data-f=amp></label>
  <button data-x=stk data-i=${sel}>이 스티커 삭제</button></div>`:'<small>스티커를 선택하면 크기와 움직임을 고를 수 있어요.</small>'}
 document.addEventListener('input',e=>{const d=e.target.dataset;
  if(d.a){const v=e.target.type=='checkbox'?e.target.checked:(e.target.type=='range'||d.n)?+e.target.value:e.target.value;if(d.f)S[d.a][d.i][d.f]=v;else S[d.a][d.i]=v}
